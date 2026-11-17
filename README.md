@@ -1,0 +1,65 @@
+# Fake Artist 🎨🤫
+
+Ein Zeichen- und Bluff-Spiel fürs Handy, für 3–10 Leute (am besten 4–8).
+Alle zeichnen gemeinsam ein geheimes Wort, Strich für Strich. Nur einer, der **Fake**, kennt das Wort nicht und muss so tun, als ob.
+
+## So wird gespielt
+1. Eine Person erstellt einen Raum und teilt den Link oder den 4-stelligen Code.
+2. Alle halten die Geheimkarte gedrückt: Ihr seht die **Kategorie** und das **Wort**. Der Fake sieht nur die Kategorie.
+3. Reihum zeichnet jeder **einen einzigen Strich** (Finger nicht absetzen). Insgesamt zwei Runden.
+4. Abstimmen: Wer ist der Fake?
+5. Wird der Fake erwischt, darf er das Wort raten. Ist es richtig, gewinnt er trotzdem.
+
+**Punkte:** Gewinnt der Fake, bekommt er +2 Punkte. Wird er erwischt und rät falsch, bekommen alle anderen +1 Punkt.
+Gleichstand bei der Abstimmung bedeutet: Der Fake kommt davon.
+
+In der Lobby kann der Host **eigene Begriffe** eintragen (eine Zeile pro Begriff, z.B. `Lehrer: Herr Müller`). Das ist perfekt für Insider aus der Klasse.
+
+---
+
+## Online stellen (gratis mit Render)
+
+Damit deine Kollegen von überall mitspielen können, braucht das Spiel einen Server. Render ist dafür gratis.
+
+### 1. Code auf GitHub hochladen
+1. Melde dich bei https://github.com an oder erstelle ein Konto.
+2. Oben rechts auf **+**, dann **New repository** wählen. Gib einen Namen ein, z.B. `fake-artist`, wähle **Public** und klicke **Create repository**.
+3. Auf der neuen Seite klickst du auf **uploading an existing file**.
+4. Ziehe **alle Dateien und Ordner aus diesem Ordner** ins Fenster: `server.js`, `words.js`, `package.json`, `README.md`, `.gitignore` und den Ordner `public`.
+   Lade **nicht** den Ordner `node_modules` hoch, falls du einen hast.
+5. Klicke unten auf **Commit changes**.
+
+> Tipp: Wenn `.gitignore` nicht sichtbar ist, ist das egal. Wichtig sind `server.js`, `words.js`, `package.json` und `public/index.html`.
+
+### 2. Auf Render starten
+1. Gehe zu https://render.com und melde dich mit deinem **GitHub-Konto** an.
+2. Klicke **New +**, dann **Web Service**, und wähle dein Repository `fake-artist`.
+3. Einstellungen:
+   - **Language / Runtime:** Node
+   - **Build Command:** `npm install`
+   - **Start Command:** `npm start`
+   - **Instance Type:** Free
+4. Klicke **Create Web Service** (oder **Deploy**). Nach ein bis zwei Minuten steht oben ein Link wie `https://fake-artist-xxxx.onrender.com`.
+5. Das ist euer Spiel-Link. Öffne ihn auf dem Handy, erstelle einen Raum und teile den Link.
+
+### Gut zu wissen
+- Der Gratis-Server **schläft nach 15 Minuten ohne Nutzung ein**. Der erste Aufruf danach dauert bis zu etwa einer Minute. Öffne den Link also kurz bevor ihr spielen wollt.
+- Räume werden nicht dauerhaft gespeichert. Wenn der Server neu startet, erstellt ihr einfach einen neuen Raum.
+- Wenn du auf GitHub etwas änderst (z.B. neue Wörter in `words.js`), aktualisiert Render das Spiel automatisch.
+
+---
+
+## Auf dem eigenen Computer testen
+Dafür brauchst du [Node.js](https://nodejs.org), Version 18 oder neuer.
+
+```
+npm install
+npm start
+```
+
+Danach öffnest du http://localhost:3000. Um alleine zu testen, öffne drei Browser-Fenster, eins davon im Inkognito-Modus. Jedes Fenster ist dann ein eigener Spieler.
+
+## Dateien
+- `server.js`: der Spielserver (Räume, Runden, Abstimmung, Punkte)
+- `words.js`: alle Begriffe. Hier kannst du Kategorien und Wörter ergänzen.
+- `public/index.html`: die Handy-Oberfläche
