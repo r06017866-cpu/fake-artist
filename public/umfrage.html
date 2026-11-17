@@ -98,6 +98,30 @@
   #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 10px 16px; border-radius: 12px; font-weight: 700; box-shadow: 4px 4px 0 var(--accent); opacity: 0; pointer-events: none; transition: opacity .2s; max-width: 90%; text-align: center; z-index: 30; }
   #toast.show { opacity: 1; }
   .spinner { text-align: center; padding: 60px 0; color: var(--muted); }
+
+  /* Mehrere Fragen */
+  .qblock { position: relative; }
+  .qhead { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+  .qnum { font-weight: 800; font-size: 14px; background: var(--ink); color: #fff; border-radius: 99px; padding: 2px 10px; }
+  .seg { display: flex; border: 2px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .seg button { flex: 1; border: 0; border-radius: 0; box-shadow: none; background: var(--paper); color: var(--ink); padding: 9px 4px; font-size: 14px; }
+  .seg button + button { border-left: 2px solid var(--line); }
+  .seg button.on { background: var(--ink); color: #fff; }
+  .seg button:active { transform: none; box-shadow: none; }
+  .addq { background: var(--paper); color: var(--ink); border-style: dashed; box-shadow: none; }
+  .qtitle { font-size: 21px; font-weight: 800; line-height: 1.15; letter-spacing: -.5px; margin: 0 0 4px; overflow-wrap: anywhere; }
+  .hint { font-size: 14px; color: var(--muted); margin: 0 0 12px; }
+  .opt .mark.num { border-radius: 8px; font-weight: 800; font-size: 14px; }
+  .opt.ranked { background: var(--accent-soft); }
+  .opt.ranked .mark { background: var(--accent); }
+  .rankres { display: flex; gap: 10px; align-items: flex-start; }
+  .place { flex: none; width: 30px; height: 30px; border: 2px solid var(--line); border-radius: 8px; display: grid; place-items: center; font-weight: 800; background: var(--paper); }
+  .rankres:first-child .place { background: var(--accent); color: #fff; }
+  .rankres .res { flex: 1; margin: 0 0 14px; }
+  details.people { margin-top: 6px; font-size: 14px; }
+  details.people summary { cursor: pointer; font-weight: 700; }
+  details.people ol { margin: 6px 0 0; padding-left: 20px; color: var(--muted); }
+  .warn { outline: 3px solid var(--accent); outline-offset: 3px; }
 </style>
 </head>
 <body>
@@ -166,80 +190,146 @@ if (pollId && hashKey) {
   const a = admins(); a[pollId] = hashKey; store.set("poll_admin", a);
   history.replaceState(null, "", location.pathname);
 }
-pollId ? showPoll(pollId) : showCreate();
 
 // ---------- Neue Umfrage ----------
+const TYPES = [
+  { id: "single", label: "Eine Antwort" },
+  { id: "multi", label: "Mehrere" },
+  { id: "rank", label: "Rangliste" },
+];
+const MAX_Q = 10, MAX_OPT = 12;
+const newQuestion = () => ({ text: "", type: "single", options: ["", "", ""] });
+let draft = { title: "", questions: [newQuestion()], names: false, hideResults: false };
+
 function showCreate() {
   document.title = "Neue Umfrage";
+  renderCreate();
+}
+
+function renderCreate(focus) {
   const mine = myPolls();
+  const many = draft.questions.length > 1;
   $app.innerHTML = `
     <h1>Neue<br><span>Umfrage</span></h1>
     <p class="muted">Ohne Konto. Link teilen, alle stimmen ab, fertig.</p>
-    <div class="card stack">
-      <input type="text" id="q" maxlength="200" placeholder="Deine Frage, z.B. Wann treffen wir uns?">
-      <div class="small muted" style="margin-top:14px">Antworten</div>
-      <div id="opts" class="stack"></div>
-    </div>
+    ${many ? `<div class="card"><input type="text" id="title" maxlength="120" placeholder="Titel der Umfrage, z.B. Planung Klassenfest" value="${esc(draft.title)}"></div>` : ""}
+    ${draft.questions.map((q, qi) => `
+      <div class="card qblock" id="qb${qi}">
+        <div class="qhead">
+          <span class="qnum">${many ? "Frage " + (qi + 1) : "Frage"}</span>
+          ${many ? `<button class="ghost small" data-delq="${qi}">Frage entfernen</button>` : ""}
+        </div>
+        <input type="text" data-q="${qi}" maxlength="200" placeholder="${qi === 0 ? "z.B. Wann treffen wir uns?" : "Deine Frage"}" value="${esc(q.text)}">
+        <div class="seg" style="margin-top:12px">${TYPES.map((t) => `<button data-type="${t.id}" data-tq="${qi}" class="${q.type === t.id ? "on" : ""}">${t.label}</button>`).join("")}</div>
+        <p class="hint" style="margin:8px 0 6px">${typeHint(q.type, true)}</p>
+        <div class="stack">${q.options.map((o, oi) => `
+          <div class="row">
+            <input type="text" class="grow" data-oq="${qi}" data-o="${oi}" maxlength="100" placeholder="Antwort ${oi + 1}" value="${esc(o)}">
+            <button class="x" data-delo="${qi}:${oi}" title="Entfernen">×</button>
+          </div>`).join("")}
+        </div>
+      </div>`).join("")}
+    ${draft.questions.length < MAX_Q ? `<button class="addq" id="addq">+ Weitere Frage hinzufügen</button>` : ""}
     <div class="card">
-      <label class="toggle"><span class="txt">Mehrere Antworten erlauben<small>Z.B. für «An welchen Tagen kannst du?»</small></span><input type="checkbox" id="multi"></label>
-      <label class="toggle"><span class="txt">Namen zeigen<small>Alle sehen, wer was gewählt hat</small></span><input type="checkbox" id="names"></label>
-      <label class="toggle"><span class="txt">Ergebnisse erst nach Abstimmen<small>Damit niemand einfach der Mehrheit folgt</small></span><input type="checkbox" id="hide"></label>
+      <label class="toggle"><span class="txt">Namen zeigen<small>Alle sehen, wer was gewählt hat</small></span><input type="checkbox" id="names" ${draft.names ? "checked" : ""}></label>
+      <label class="toggle"><span class="txt">Ergebnisse erst nach Abstimmen<small>Damit niemand einfach der Mehrheit folgt</small></span><input type="checkbox" id="hide" ${draft.hideResults ? "checked" : ""}></label>
     </div>
     <button id="create">Umfrage erstellen</button>
     ${mine.length ? `<div class="card" style="margin-top:22px"><h2>Meine Umfragen</h2><div class="list">${mine.map((p) => `
-      <a href="/umfrage/${esc(p.id)}"><span>${esc(p.question)}</span><span class="small muted">${p.admin ? "👑" : ""} ${new Date(p.at).toLocaleDateString("de-CH")}</span></a>`).join("")}</div></div>` : ""}
+      <a href="/umfrage/${esc(p.id)}"><span>${esc(p.title || p.question)}</span><span class="small muted">${p.admin ? "👑" : ""} ${new Date(p.at).toLocaleDateString("de-CH")}</span></a>`).join("")}</div></div>` : ""}
     <p class="center small muted" style="margin-top:24px"><a href="/">🎨 Fake Artist spielen</a></p>`;
 
-  const box = document.getElementById("opts");
-  const addOpt = (value = "") => {
-    const row = document.createElement("div");
-    row.className = "row";
-    row.innerHTML = `<input type="text" class="grow" maxlength="100" placeholder="Antwort ${box.children.length + 1}"><button class="x" title="Entfernen">×</button>`;
-    const inp = row.querySelector("input");
-    inp.value = value;
-    inp.oninput = () => { if (inp === lastInput() && inp.value.trim() && box.children.length < 12) addOpt(); };
-    inp.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); const all = inputs(); const n = all[all.indexOf(inp) + 1]; n ? n.focus() : document.getElementById("create").click(); } };
-    row.querySelector(".x").onclick = () => { if (box.children.length > 2) { row.remove(); renumber(); } else inp.value = ""; };
-    box.appendChild(row);
+  // Eingaben speichern, ohne neu aufzubauen
+  const t = document.getElementById("title");
+  if (t) t.oninput = () => (draft.title = t.value);
+  $app.querySelectorAll("[data-q]").forEach((el) => (el.oninput = () => (draft.questions[el.dataset.q].text = el.value)));
+  $app.querySelectorAll("[data-oq]").forEach((el) => {
+    const qi = Number(el.dataset.oq), oi = Number(el.dataset.o);
+    el.oninput = () => {
+      const opts = draft.questions[qi].options;
+      opts[oi] = el.value;
+      // Neue leere Zeile, sobald man in die letzte schreibt
+      if (oi === opts.length - 1 && el.value.trim() && opts.length < MAX_OPT) {
+        opts.push("");
+        renderCreate({ sel: `[data-oq="${qi}"][data-o="${oi}"]` });
+      }
+    };
+    el.onkeydown = (e) => {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      const next = $app.querySelector(`[data-oq="${qi}"][data-o="${oi + 1}"]`);
+      next ? next.focus() : document.getElementById("create").click();
+    };
+  });
+  $app.querySelectorAll("[data-type]").forEach((b) => (b.onclick = () => { draft.questions[b.dataset.tq].type = b.dataset.type; renderCreate(); }));
+  $app.querySelectorAll("[data-delo]").forEach((b) => (b.onclick = () => {
+    const [qi, oi] = b.dataset.delo.split(":").map(Number);
+    const opts = draft.questions[qi].options;
+    if (opts.length > 2) opts.splice(oi, 1); else opts[oi] = "";
+    renderCreate();
+  }));
+  $app.querySelectorAll("[data-delq]").forEach((b) => (b.onclick = () => { draft.questions.splice(Number(b.dataset.delq), 1); renderCreate(); }));
+  const addq = document.getElementById("addq");
+  if (addq) addq.onclick = () => {
+    draft.questions.push(newQuestion());
+    renderCreate({ sel: `[data-q="${draft.questions.length - 1}"]`, scroll: true });
   };
-  const inputs = () => [...box.querySelectorAll("input")];
-  const lastInput = () => inputs().at(-1);
-  const renumber = () => inputs().forEach((i, k) => (i.placeholder = "Antwort " + (k + 1)));
-  addOpt(); addOpt(); addOpt();
+  document.getElementById("names").onchange = (e) => (draft.names = e.target.checked);
+  document.getElementById("hide").onchange = (e) => (draft.hideResults = e.target.checked);
+  document.getElementById("create").onclick = createPoll;
 
-  document.getElementById("create").onclick = async (e) => {
-    const btn = e.currentTarget;
-    const question = document.getElementById("q").value.trim();
-    const options = inputs().map((i) => i.value.trim()).filter(Boolean);
-    if (!question) { document.getElementById("q").focus(); return toast("Bitte gib zuerst eine Frage ein."); }
-    if (options.length < 2) return toast("Es braucht mindestens 2 Antworten.");
-    btn.disabled = true; btn.textContent = "Wird erstellt…";
-    try {
-      const r = await api("/polls", {
-        question, options,
-        multi: document.getElementById("multi").checked,
-        names: document.getElementById("names").checked,
-        hideResults: document.getElementById("hide").checked,
-      });
-      const a = admins(); a[r.id] = r.adminKey; store.set("poll_admin", a);
-      rememberPoll(r.id, question, true);
-      location.href = "/umfrage/" + r.id;
-    } catch (err) {
-      toast(err.message); btn.disabled = false; btn.textContent = "Umfrage erstellen";
+  if (focus) {
+    const el = $app.querySelector(focus.sel);
+    if (el) {
+      el.focus({ preventScroll: !focus.scroll });
+      const len = el.value.length; try { el.setSelectionRange(len, len); } catch {}
+      if (focus.scroll) el.closest(".card").scrollIntoView({ behavior: "smooth", block: "center" });
     }
-  };
+  }
+}
+
+function typeHint(type, creating) {
+  if (type === "multi") return creating ? "Man kann mehrere Antworten wählen." : "Wähle eine oder mehrere Antworten:";
+  if (type === "rank") return creating ? "Man bringt die Antworten in eine Reihenfolge, die beliebteste gewinnt." : "Tippe die Antworten in deiner Reihenfolge an, die beste zuerst. Nochmal tippen entfernt sie.";
+  return creating ? "Man wählt genau eine Antwort." : "Wähle eine Antwort:";
+}
+
+async function createPoll(e) {
+  const btn = e.currentTarget;
+  const questions = draft.questions.map((q) => ({ text: q.text.trim(), type: q.type, options: q.options.map((o) => o.trim()).filter(Boolean) }));
+  const bad = questions.findIndex((q) => !q.text || q.options.length < 2);
+  if (bad >= 0) {
+    const q = questions[bad];
+    const block = document.getElementById("qb" + bad);
+    block.scrollIntoView({ behavior: "smooth", block: "center" });
+    block.classList.add("warn"); setTimeout(() => block.classList.remove("warn"), 1600);
+    const pre = questions.length > 1 ? `Frage ${bad + 1}: ` : "";
+    return toast(pre + (!q.text ? "Bitte gib eine Frage ein." : "Es braucht mindestens 2 Antworten."));
+  }
+  btn.disabled = true; btn.textContent = "Wird erstellt…";
+  try {
+    const title = draft.questions.length > 1 ? draft.title.trim() : "";
+    const r = await api("/polls", { title, questions, names: draft.names, hideResults: draft.hideResults });
+    const a = admins(); a[r.id] = r.adminKey; store.set("poll_admin", a);
+    rememberPoll(r.id, title || questions[0].text, true);
+    location.href = "/umfrage/" + r.id;
+  } catch (err) {
+    toast(err.message); btn.disabled = false; btn.textContent = "Umfrage erstellen";
+  }
 }
 
 // ---------- Umfrage ansehen und abstimmen ----------
 let P = null;          // aktuelle Umfrage vom Server
 let editing = false;   // Stimme gerade am Ändern?
-let picked = [];       // aktuelle Auswahl
+let answers = [];      // aktuelle Auswahl pro Frage
 let timer = null;
 
 async function load(id) {
   P = await api(`/polls/${id}?voter=${voter}&admin=${admins()[id] || ""}`);
-  rememberPoll(P.id, P.question, P.isAdmin);
+  rememberPoll(P.id, P.title, P.isAdmin);
 }
+const resetAnswers = () => (answers = P.questions.map((_, i) => (P.myVote && P.myVote.answers[i] ? [...P.myVote.answers[i]] : [])));
+const singleQ = () => P.questions.length === 1 && P.questions[0].text === P.title;
 
 async function showPoll(id) {
   try { await load(id); }
@@ -249,110 +339,159 @@ async function showPoll(id) {
     $app.innerHTML = `<h1>Hoppla</h1><p>${esc(err.message)}</p><button onclick="location.href='/umfrage'">Neue Umfrage erstellen</button>`;
     return;
   }
-  document.title = P.question;
-  picked = P.myVote ? [...P.myVote.choices] : [];
+  document.title = P.title;
+  resetAnswers();
   renderPoll();
   // Ergebnisse alle paar Sekunden aktualisieren
   clearInterval(timer);
   timer = setInterval(async () => {
     if (document.hidden || editingNow()) return;
-    try { await load(id); renderPoll(); } catch {}
+    try { await load(id); if (!editing) resetAnswers(); renderPoll(); } catch {}
   }, 5000);
 }
-const editingNow = () => (!P.myVote || editing) && !P.closed && (picked.length > 0 || (document.activeElement && document.activeElement.id === "name"));
+const votingVisible = () => !P.closed && (!P.myVote || editing);
+const editingNow = () => votingVisible() && (answers.some((a) => a.length) || (document.activeElement && document.activeElement.id === "name"));
 
 function renderPoll() {
-  const showVoting = !P.closed && (!P.myVote || editing);
+  const voting = votingVisible();
   const link = location.origin + "/umfrage/" + P.id;
   const n = P.voterCount;
+  const scrollY = window.scrollY;
   $app.innerHTML = `
-    <div class="question">${esc(P.question)}</div>
+    <div class="question">${esc(P.title)}</div>
     <p class="muted small">
       ${n} ${n === 1 ? "Person hat" : "Personen haben"} abgestimmt
-      ${P.multi ? " · Mehrfachauswahl" : ""}
+      ${P.questions.length > 1 ? ` · ${P.questions.length} Fragen` : ""}
       ${P.closed ? ' <span class="badge closed">Geschlossen</span>' : ""}
       ${P.isAdmin ? ' <span class="badge">👑 deine Umfrage</span>' : ""}
     </p>
-    ${showVoting ? votingHTML() : resultsHTML()}
+    ${voting ? votingHTML() : resultsHTML()}
     <div class="stack" style="margin-top:18px">
       <button class="secondary" id="share">🔗 Link teilen</button>
       ${P.myVote && !P.closed && !editing ? `<button class="secondary" id="change">✏️ Stimme ändern</button>` : ""}
     </div>
     ${P.isAdmin ? adminHTML() : ""}
     <p class="center small muted" style="margin-top:24px"><a href="/umfrage">+ Eigene Umfrage erstellen</a></p>`;
+  window.scrollTo(0, scrollY);
 
-  document.getElementById("share").onclick = () => share(link, P.question);
+  document.getElementById("share").onclick = () => share(link, P.title);
   const ch = document.getElementById("change");
-  if (ch) ch.onclick = () => { editing = true; picked = [...P.myVote.choices]; renderPoll(); };
-  if (showVoting) bindVoting();
+  if (ch) ch.onclick = () => { editing = true; resetAnswers(); renderPoll(); window.scrollTo(0, 0); };
+  if (voting) bindVoting();
   if (P.isAdmin) bindAdmin();
+}
+
+function qHeader(q, qi) {
+  if (singleQ()) return "";
+  return `<div class="qhead" style="margin:0 0 6px"><span class="qnum">Frage ${qi + 1}</span></div><div class="qtitle">${esc(q.text)}</div>`;
 }
 
 function votingHTML() {
   const name = (P.myVote && P.myVote.name) || store.get("poll_name", "");
+  const done = answers.every((a) => a.length);
   return `
-    <p class="small muted">${P.multi ? "Wähle eine oder mehrere Antworten:" : "Wähle eine Antwort:"}</p>
-    <div class="stack" id="opts">
-      ${P.options.map((o, i) => `
-        <button class="opt ${P.multi ? "multi" : ""} ${picked.includes(i) ? "sel" : ""}" data-i="${i}">
-          <span class="mark">${picked.includes(i) ? "✓" : ""}</span><span class="label">${esc(o)}</span>
-        </button>`).join("")}
-    </div>
-    ${P.names ? `<input type="text" id="name" maxlength="30" placeholder="Dein Name (alle sehen ihn)" value="${esc(name)}" style="margin-top:14px">` : ""}
-    <button id="vote" style="margin-top:14px" ${picked.length ? "" : "disabled"}>${P.myVote ? "Stimme speichern" : "Abstimmen"}</button>
+    ${P.questions.map((q, qi) => `
+      <div class="card" id="vq${qi}">
+        ${qHeader(q, qi)}
+        <p class="hint">${typeHint(q.type, false)}</p>
+        <div class="stack">
+          ${q.options.map((o, oi) => {
+            const a = answers[qi];
+            if (q.type === "rank") {
+              const pos = a.indexOf(oi);
+              return `<button class="opt ${pos >= 0 ? "ranked" : ""}" data-q="${qi}" data-i="${oi}">
+                <span class="mark num">${pos >= 0 ? pos + 1 : ""}</span><span class="label">${esc(o)}</span></button>`;
+            }
+            const sel = a.includes(oi);
+            return `<button class="opt ${q.type === "multi" ? "multi" : ""} ${sel ? "sel" : ""}" data-q="${qi}" data-i="${oi}">
+              <span class="mark">${sel ? "✓" : ""}</span><span class="label">${esc(o)}</span></button>`;
+          }).join("")}
+        </div>
+        ${q.type === "rank" && answers[qi].length ? `<div class="center"><button class="ghost small" data-reset="${qi}">Reihenfolge zurücksetzen</button></div>` : ""}
+      </div>`).join("")}
+    ${P.names ? `<input type="text" id="name" maxlength="30" placeholder="Dein Name (alle sehen ihn)" value="${esc(name)}" style="margin-top:4px">` : ""}
+    <button id="vote" style="margin-top:14px" ${done ? "" : "disabled"}>${P.myVote ? "Stimme speichern" : "Abstimmen"}</button>
+    ${!done && P.questions.length > 1 ? `<p class="center small muted">${answers.filter((a) => a.length).length} von ${P.questions.length} Fragen beantwortet</p>` : ""}
     ${P.myVote ? `<div class="center"><button class="ghost" id="cancel">Abbrechen</button> <button class="ghost" id="remove">Stimme zurückziehen</button></div>` : ""}
     ${P.hideResults && !P.results ? `<p class="center small muted">Die Ergebnisse siehst du nach deiner Stimme.</p>` : ""}`;
 }
 
 function bindVoting() {
-  document.querySelectorAll(".opt").forEach((b) => (b.onclick = () => {
-    const i = Number(b.dataset.i);
-    if (P.multi) picked = picked.includes(i) ? picked.filter((x) => x !== i) : [...picked, i];
-    else picked = picked.includes(i) ? [] : [i];
-    const nameEl = document.getElementById("name");
-    const nameVal = nameEl ? nameEl.value : null;
-    renderPoll();
-    if (nameEl && nameVal != null) document.getElementById("name").value = nameVal;
+  const keepName = () => { const el = document.getElementById("name"); return el ? el.value : null; };
+  const rerender = () => { const nm = keepName(); renderPoll(); const el = document.getElementById("name"); if (el && nm != null) el.value = nm; };
+  $app.querySelectorAll(".opt").forEach((b) => (b.onclick = () => {
+    const qi = Number(b.dataset.q), i = Number(b.dataset.i), q = P.questions[qi];
+    let a = answers[qi];
+    if (q.type === "multi" || q.type === "rank") a = a.includes(i) ? a.filter((x) => x !== i) : [...a, i];
+    else a = a.includes(i) ? [] : [i];
+    answers[qi] = a;
+    rerender();
   }));
-  const send = async (choices) => {
+  $app.querySelectorAll("[data-reset]").forEach((b) => (b.onclick = () => { answers[Number(b.dataset.reset)] = []; rerender(); }));
+  const send = async (payload) => {
     const nameEl = document.getElementById("name");
     const name = nameEl ? nameEl.value.trim() : "";
-    if (P.names && choices.length && !name) { nameEl.focus(); return toast("Bitte gib deinen Namen ein."); }
+    const withdraw = payload.every((a) => a.length === 0);
+    if (P.names && !withdraw && !name) { nameEl.focus(); return toast("Bitte gib deinen Namen ein."); }
     if (name) store.set("poll_name", name);
     const btn = document.getElementById("vote"); btn.disabled = true;
     try {
-      P = await api(`/polls/${P.id}/vote`, { voter, name, choices, admin: admins()[P.id] });
-      editing = false; picked = P.myVote ? [...P.myVote.choices] : [];
-      renderPoll();
-      toast(choices.length ? "Stimme gespeichert ✓" : "Stimme zurückgezogen");
+      P = await api(`/polls/${P.id}/vote`, { voter, name, answers: payload, admin: admins()[P.id] });
+      editing = false; resetAnswers();
+      renderPoll(); window.scrollTo(0, 0);
+      toast(withdraw ? "Stimme zurückgezogen" : "Stimme gespeichert ✓");
     } catch (err) { toast(err.message); btn.disabled = false; }
   };
-  document.getElementById("vote").onclick = () => send(picked);
-  const c = document.getElementById("cancel"); if (c) c.onclick = () => { editing = false; picked = [...P.myVote.choices]; renderPoll(); };
-  const r = document.getElementById("remove"); if (r) r.onclick = () => send([]);
+  document.getElementById("vote").onclick = () => send(answers);
+  const c = document.getElementById("cancel"); if (c) c.onclick = () => { editing = false; resetAnswers(); renderPoll(); };
+  const r = document.getElementById("remove"); if (r) r.onclick = () => send(P.questions.map(() => []));
 }
 
 function resultsHTML() {
   if (!P.results) return `<div class="card center muted">Die Ergebnisse werden nach deiner Stimme angezeigt.</div>`;
-  const { counts, who } = P.results;
-  const base = P.multi ? Math.max(1, P.voterCount) : Math.max(1, counts.reduce((a, b) => a + b, 0));
+  return P.questions.map((q, qi) => `<div class="card">${qHeader(q, qi)}${q.type === "rank" ? rankResults(q, qi) : choiceResults(q, qi)}</div>`).join("")
+    + (!P.closed ? `<p class="small muted center">Aktualisiert sich automatisch.</p>` : "");
+}
+
+function choiceResults(q, qi) {
+  const { counts, who, responders } = P.results[qi];
+  const base = q.type === "multi" ? Math.max(1, responders) : Math.max(1, counts.reduce((a, b) => a + b, 0));
   const max = Math.max(...counts);
-  const mine = P.myVote ? P.myVote.choices : [];
-  const order = P.options.map((_, i) => i);
+  const mine = P.myVote ? P.myVote.answers[qi] || [] : [];
+  const order = q.options.map((_, i) => i);
   if (P.closed) order.sort((a, b) => counts[b] - counts[a]);
-  return `<div class="card">
-    ${order.map((i) => {
-      const pct = Math.round((counts[i] / base) * 100);
-      return `<div class="res ${mine.includes(i) ? "mine" : ""} ${P.closed && max > 0 && counts[i] === max ? "win" : ""}">
-        <div class="top"><span class="label">${esc(P.options[i])} ${mine.includes(i) ? '<span class="badge you">deine Wahl</span>' : ""}</span>
-          <span class="pct">${counts[i]} · ${pct}%</span></div>
+  return order.map((i) => {
+    const pct = Math.round((counts[i] / base) * 100);
+    return `<div class="res ${mine.includes(i) ? "mine" : ""} ${P.closed && max > 0 && counts[i] === max ? "win" : ""}">
+      <div class="top"><span class="label">${esc(q.options[i])} ${mine.includes(i) ? '<span class="badge you">deine Wahl</span>' : ""}</span>
+        <span class="pct">${counts[i]} · ${pct}%</span></div>
+      <div class="bar"><div style="width:${pct}%"></div></div>
+      ${who && who[i].length ? `<div class="who">${who[i].map(esc).join(", ")}</div>` : ""}
+    </div>`;
+  }).join("") + (q.type === "multi" ? `<p class="small muted">Prozent = Anteil der Personen, die diese Antwort gewählt haben.</p>` : "");
+}
+
+function rankResults(q, qi) {
+  const { points, maxPoints, avgPlace, rankings, responders } = P.results[qi];
+  if (!responders) return `<p class="muted">Noch keine Stimmen.</p>`;
+  const mine = P.myVote ? P.myVote.answers[qi] || [] : [];
+  const order = q.options.map((_, i) => i).sort((a, b) => points[b] - points[a] || (avgPlace[a] ?? 99) - (avgPlace[b] ?? 99));
+  let place = 0, last = null;
+  return order.map((i, k) => {
+    if (points[i] !== last) { place = k + 1; last = points[i]; }
+    const pct = Math.round((points[i] / Math.max(1, maxPoints)) * 100);
+    const myPos = mine.indexOf(i);
+    return `<div class="rankres"><span class="place">${place}</span>
+      <div class="res ${myPos >= 0 ? "mine" : ""} ${P.closed && place === 1 && points[i] > 0 ? "win" : ""}">
+        <div class="top"><span class="label">${esc(q.options[i])} ${myPos >= 0 ? `<span class="badge you">bei dir Platz ${myPos + 1}</span>` : ""}</span>
+          <span class="pct">${points[i]} Pkt</span></div>
         <div class="bar"><div style="width:${pct}%"></div></div>
-        ${who && who[i].length ? `<div class="who">${who[i].map(esc).join(", ")}</div>` : ""}
-      </div>`;
-    }).join("")}
-    ${P.multi ? `<p class="small muted">Prozent = Anteil der Personen, die diese Antwort gewählt haben.</p>` : ""}
-    ${!P.closed ? `<p class="small muted center">Aktualisiert sich automatisch.</p>` : ""}
-  </div>`;
+        <div class="who">${avgPlace[i] != null ? "Ø Platz " + String(avgPlace[i]).replace(".", ",") : "von niemandem gerankt"}</div>
+      </div></div>`;
+  }).join("") + `
+    <p class="small muted">Punkte: Platz 1 bekommt ${q.options.length} Punkte, Platz 2 ${q.options.length - 1} Punkte und so weiter.</p>
+    ${rankings && rankings.length ? `<details class="people"><summary>Ranglisten von allen (${rankings.length})</summary><ol>${rankings.map((r) =>
+      `<li><b>${esc(r.name)}:</b> ${r.order.map((o) => esc(q.options[o])).join(" › ")}</li>`).join("")}</ol></details>` : ""}`;
 }
 
 function adminHTML() {
@@ -361,14 +500,14 @@ function adminHTML() {
     <p class="small muted">Nur du siehst diesen Bereich. Mit dem Verwaltungs-Link kannst du die Umfrage auch auf einem anderen Gerät verwalten. Teile ihn nicht!</p>
     <button class="secondary" id="toggleClose">${P.closed ? "🔓 Umfrage wieder öffnen" : "🔒 Umfrage schliessen"}</button>
     <button class="secondary" id="adminLink">🔑 Verwaltungs-Link kopieren</button>
-    <button class="ghost" id="del" style="color:var(--bad)">Umfrage löschen</button>
+    <button class="ghost" id="del" style="color:var(--accent)">Umfrage löschen</button>
   </div>`;
 }
 
 function bindAdmin() {
   const key = admins()[P.id];
   document.getElementById("toggleClose").onclick = async () => {
-    try { P = await api(`/polls/${P.id}/close`, { admin: key, closed: !P.closed, voter }); editing = false; renderPoll(); toast(P.closed ? "Umfrage geschlossen" : "Umfrage wieder offen"); }
+    try { P = await api(`/polls/${P.id}/close`, { admin: key, closed: !P.closed, voter }); editing = false; resetAnswers(); renderPoll(); toast(P.closed ? "Umfrage geschlossen" : "Umfrage wieder offen"); }
     catch (err) { toast(err.message); }
   };
   document.getElementById("adminLink").onclick = async () => {
@@ -381,6 +520,9 @@ function bindAdmin() {
     catch (err) { toast(err.message); }
   };
 }
+
+// Start
+pollId ? showPoll(pollId) : showCreate();
 </script>
 </body>
 </html>
