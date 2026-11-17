@@ -14,8 +14,14 @@ const MAX_POINTS_PER_STROKE = 1500;
 const COLORS = ["#ff4d6d", "#3a86ff", "#06d6a0", "#ffbe0b", "#8338ec", "#fb5607", "#00b4d8", "#ff70d6", "#7cb518", "#8d6e63"];
 
 const app = express();
+app.set("trust proxy", 1);
 app.use(express.static(path.join(__dirname, "public")));
 app.get("/health", (_req, res) => res.send("ok"));
+
+// Umfrage-Tool (siehe polls.js)
+const { createPollRouter } = require("./polls");
+app.use("/api", createPollRouter());
+app.get(["/umfrage", "/umfrage/:id"], (_req, res) => res.sendFile(path.join(__dirname, "public", "umfrage.html")));
 const server = http.createServer(app);
 const io = new Server(server, { maxHttpBufferSize: 1e5 });
 

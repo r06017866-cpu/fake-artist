@@ -1,4 +1,8 @@
-# Fake Artist 🎨🤫
+# Fake Artist 🎨🤫 + Umfrage-Tool 📊
+
+Auf diesem Server laufen zwei Dinge:
+- **Fake Artist** unter `/` (das Spiel)
+- **Umfrage-Tool** unter `/umfrage` (Abstimmungen ohne Konto)
 
 Ein Zeichen- und Bluff-Spiel fürs Handy, für 3–10 Leute (am besten 4–8).
 Alle zeichnen gemeinsam ein geheimes Wort, Strich für Strich. Nur einer, der **Fake**, kennt das Wort nicht und muss so tun, als ob.
@@ -25,7 +29,7 @@ Damit deine Kollegen von überall mitspielen können, braucht das Spiel einen Se
 1. Melde dich bei https://github.com an oder erstelle ein Konto.
 2. Oben rechts auf **+**, dann **New repository** wählen. Gib einen Namen ein, z.B. `fake-artist`, wähle **Public** und klicke **Create repository**.
 3. Auf der neuen Seite klickst du auf **uploading an existing file**.
-4. Ziehe **alle Dateien und Ordner aus diesem Ordner** ins Fenster: `server.js`, `words.js`, `package.json`, `README.md`, `.gitignore` und den Ordner `public`.
+4. Ziehe **alle Dateien und Ordner aus diesem Ordner** ins Fenster: `server.js`, `polls.js`, `words.js`, `package.json`, `package-lock.json`, `README.md`, `.gitignore` und den Ordner `public`.
    Lade **nicht** den Ordner `node_modules` hoch, falls du einen hast.
 5. Klicke unten auf **Commit changes**.
 
@@ -49,6 +53,24 @@ Damit deine Kollegen von überall mitspielen können, braucht das Spiel einen Se
 
 ---
 
+## Umfrage-Tool 📊
+Öffne `/umfrage`, z.B. `https://dein-link.onrender.com/umfrage`.
+- Frage und Antworten eingeben, Umfrage erstellen und den Link teilen.
+- Optionen: mehrere Antworten erlauben, Namen zeigen, Ergebnisse erst nach Abstimmen.
+- Wer die Umfrage erstellt hat, kann sie schliessen, wieder öffnen oder löschen.
+- Niemand braucht ein Konto. Jedes Gerät bekommt eine zufällige ID, damit man nur einmal abstimmt (Stimme ändern geht).
+- Umfragen werden nach 60 Tagen automatisch gelöscht.
+
+### Datenbank verbinden (damit Umfragen nicht verloren gehen)
+Ohne Datenbank speichert der Server Umfragen nur im Arbeitsspeicher. Wenn der Gratis-Server einschläft, sind sie weg.
+1. Auf https://neon.com ein Gratis-Konto erstellen (Anmeldung mit GitHub geht).
+2. Ein Projekt erstellen (Name z.B. `umfragen`, Region möglichst gleich wie bei Render).
+3. Auf **Connect** klicken und den **Connection string** kopieren (beginnt mit `postgresql://`).
+4. In Render beim Web Service auf **Environment** gehen, **Add Environment Variable** wählen:
+   - Key: `DATABASE_URL`
+   - Value: den kopierten Link einfügen
+5. Speichern und neu deployen. Im Log sollte stehen: `Umfragen werden gespeichert in: Postgres-Datenbank`.
+
 ## Auf dem eigenen Computer testen
 Dafür brauchst du [Node.js](https://nodejs.org), Version 18 oder neuer.
 
@@ -62,4 +84,6 @@ Danach öffnest du http://localhost:3000. Um alleine zu testen, öffne drei Brow
 ## Dateien
 - `server.js`: der Spielserver (Räume, Runden, Abstimmung, Punkte)
 - `words.js`: alle Begriffe. Hier kannst du Kategorien und Wörter ergänzen.
-- `public/index.html`: die Handy-Oberfläche
+- `public/index.html`: die Handy-Oberfläche von Fake Artist
+- `polls.js`: der Server-Teil vom Umfrage-Tool (Speichern, Abstimmen)
+- `public/umfrage.html`: die Oberfläche vom Umfrage-Tool
