@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0b0c10">
+<title>Poker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Casino-Nacht: fast schwarzer Saal, dunkelgrüner Filz mit Goldrand, Elfenbein-Karten. */
+  :root {
+    --night: #0b0c10;
+    --night2: #15171f;
+    --felt: #0f4433;
+    --felt-dark: #082b20;
+    --gold: #d4af37;
+    --gold-soft: #f1d98a;
+    --ivory: #fbf7ee;
+    --text: #f3eee2;
+    --muted: #a39d8e;
+    --red: #c8322f;
+    --win: #49d17d;
+    --lose: #ef6b5f;
+    --display: "Cinzel", "Trajan Pro", Georgia, serif;
+    --ui: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; overscroll-behavior: none; }
+  body {
+    background: radial-gradient(ellipse at 50% -10%, #23202b 0%, var(--night) 60%) fixed var(--night);
+    color: var(--text); font-family: var(--ui); font-size: 16px; line-height: 1.35;
+    font-variant-numeric: tabular-nums;
+  }
+  #app { max-width: 980px; margin: 0 auto; padding: 10px 12px 24px; }
+  button { font: inherit; cursor: pointer; border: 0; }
+  button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  input, select {
+    font: inherit; color: var(--text); background: var(--night2); border: 1px solid #343747; border-radius: 10px; padding: 11px 12px; width: 100%;
+  }
+  input:focus, select:focus { border-color: var(--gold); outline: none; }
+  label.field { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--muted); font-weight: 600; }
+
+  .btn { border-radius: 12px; padding: 13px 16px; font-weight: 800; font-size: 16px; color: #1d1606;
+    background: linear-gradient(180deg, var(--gold-soft), var(--gold)); box-shadow: 0 2px 0 #8a6d18, 0 8px 22px -10px rgba(212,175,55,.7); }
+  .btn:active { transform: translateY(1px); box-shadow: 0 1px 0 #8a6d18; }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid #3a3d4d; box-shadow: none; }
+  .btn.dark { background: #22252f; color: var(--text); box-shadow: 0 2px 0 #0a0b0f; }
+  .btn.fold { background: #2a1b1d; color: #ffb3aa; box-shadow: 0 2px 0 #0a0b0f; border: 1px solid #4a2a2d; }
+  .btn:disabled { opacity: .4; pointer-events: none; }
+  .link { background: none; color: var(--muted); text-decoration: underline; padding: 6px; font-weight: 600; }
+  .stack { display: flex; flex-direction: column; gap: 12px; }
+  .row { display: flex; gap: 10px; align-items: center; }
+  .row > * { flex: 1; }
+  .muted { color: var(--muted); }
+  .small { font-size: 13px; }
+  .center { text-align: center; }
+  .panel { background: linear-gradient(180deg, #181a22, #121318); border: 1px solid #2a2c38; border-radius: 16px; padding: 16px; }
+  .seg { display: flex; border: 1px solid #343747; border-radius: 10px; overflow: hidden; }
+  .seg button { flex: 1; background: var(--night2); color: var(--muted); padding: 10px 4px; font-weight: 700; font-size: 14px; }
+  .seg button + button { border-left: 1px solid #343747; }
+  .seg button.on { background: var(--gold); color: #1d1606; }
+
+  /* ---------- Startseite ---------- */
+  .hero { text-align: center; padding: 26px 0 10px; }
+  .hero h1 { font-family: var(--display); font-size: 54px; letter-spacing: 6px; margin: 0; color: var(--gold-soft);
+    text-shadow: 0 0 30px rgba(212,175,55,.25); }
+  .suits { letter-spacing: 12px; font-size: 20px; color: var(--muted); }
+  .suits b { color: var(--red); font-weight: 400; }
+  .home { max-width: 460px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+  .divider { text-align: center; color: var(--muted); font-size: 13px; }
+
+  /* ---------- Kopfzeile ---------- */
+  .top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .chip { background: #191b23; border: 1px solid #2c2f3c; color: var(--text); border-radius: 999px; padding: 6px 12px; font-weight: 700; font-size: 14px; white-space: nowrap; }
+  .chip b { color: var(--gold-soft); letter-spacing: 2px; }
+  .top .spacer { flex: 1; }
+  .iconbtn { width: 38px; height: 38px; border-radius: 50%; background: #191b23; border: 1px solid #2c2f3c; color: var(--text); font-size: 17px; display: grid; place-items: center; }
+
+  /* ---------- Tisch ---------- */
+  .table { position: relative; height: clamp(360px, 58vh, 540px); margin: 6px 0 4px; }
+  .felt {
+    position: absolute; inset: 9% 7%; border-radius: 50% / 50%;
+    background: radial-gradient(ellipse at 50% 40%, #16614a 0%, var(--felt) 45%, var(--felt-dark) 100%);
+    box-shadow: 0 0 0 7px #2a1a0e, 0 0 0 9px #8a6d18, 0 0 0 10px #3a2a12, 0 30px 60px -20px rgba(0,0,0,.8), inset 0 0 50px rgba(0,0,0,.55);
+  }
+  .felt::after { content: ""; position: absolute; inset: 7%; border-radius: 50%; border: 1px solid rgba(241,217,138,.13); }
+  .middle { position: absolute; left: 50%; top: 47%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 8px; width: 78%; z-index: 2; }
+  .pot { font-family: var(--display); font-weight: 700; color: var(--gold-soft); font-size: 17px; letter-spacing: 1px; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+  .board { display: flex; gap: 5px; justify-content: center; min-height: 64px; }
+  .board .slot { width: 44px; height: 62px; border-radius: 7px; border: 1px dashed rgba(241,217,138,.18); }
+  .msg { text-align: center; font-weight: 700; font-size: 14px; color: var(--ivory); text-shadow: 0 1px 2px rgba(0,0,0,.8); min-height: 18px; }
+  .msg .gold { color: var(--gold-soft); }
+
+  /* Karten */
+  .card { position: relative; width: 44px; height: 62px; border-radius: 7px; background: var(--ivory); color: #1b1b1f;
+    box-shadow: 0 2px 6px rgba(0,0,0,.45); display: flex; flex-direction: column; align-items: center; justify-content: center; flex: none; }
+  .card .r { position: absolute; top: 3px; left: 5px; font-weight: 800; font-size: 15px; line-height: 1; letter-spacing: -1px; }
+  .card .s { font-size: 26px; line-height: 1; margin-top: 8px; }
+  .card.red { color: var(--red); }
+  .card.back { background: repeating-linear-gradient(45deg, #5b1420 0 5px, #4a0f1a 5px 10px); border: 2px solid var(--ivory); }
+  .card.back::after { content: ""; position: absolute; inset: 4px; border: 1px solid rgba(241,217,138,.55); border-radius: 4px; }
+  .card.big { width: 66px; height: 92px; border-radius: 9px; }
+  .card.big .r { font-size: 21px; top: 5px; left: 7px; }
+  .card.big .s { font-size: 40px; margin-top: 12px; }
+  .card.mini { width: 26px; height: 36px; border-radius: 4px; }
+  .card.mini .r { font-size: 11px; top: 2px; left: 3px; }
+  .card.mini .s { font-size: 15px; margin-top: 7px; }
+  .card.mini.back { border-width: 1px; }
+  .card.mini.back::after { inset: 2px; }
+  .card.win { box-shadow: 0 0 0 2px var(--gold), 0 0 16px rgba(212,175,55,.8); }
+  .card.dim { filter: brightness(.45); }
+  .card.new { animation: deal .35s ease-out; }
+  @keyframes deal { from { transform: translateY(-14px) rotateY(80deg); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  /* Plätze */
+  .seat { position: absolute; transform: translate(-50%, -50%); width: 92px; display: flex; flex-direction: column; align-items: center; z-index: 3; }
+  .seat .minis { display: flex; gap: 2px; height: 36px; margin-bottom: -8px; z-index: 1; }
+  .seat .plate { position: relative; width: 100%; background: linear-gradient(180deg, #1f2230, #13141b); border: 1px solid #3a3d4d; border-radius: 12px; padding: 5px 6px 6px; text-align: center; box-shadow: 0 6px 14px rgba(0,0,0,.5); }
+  .seat .nm { font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .seat .stk { font-weight: 800; font-size: 13px; color: var(--gold-soft); }
+  .seat .act { font-size: 11px; font-weight: 700; color: var(--muted); height: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .seat.turn .plate { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(212,175,55,.35), 0 0 22px rgba(212,175,55,.45); }
+  .seat.folded { opacity: .45; }
+  .seat.away .plate { border-style: dashed; }
+  .seat.me .nm { color: var(--gold-soft); }
+  .seat.winner .plate { border-color: var(--win); box-shadow: 0 0 22px rgba(73,209,125,.5); }
+  .seat .bar { position: absolute; left: 6px; right: 6px; bottom: 2px; height: 3px; background: rgba(255,255,255,.08); border-radius: 3px; overflow: hidden; }
+  .seat .bar > i { display: block; height: 100%; background: var(--gold); }
+  .dbtn { position: absolute; top: -8px; right: -6px; width: 20px; height: 20px; border-radius: 50%; background: var(--ivory); color: #1b1b1f; font-weight: 800; font-size: 11px; display: grid; place-items: center; box-shadow: 0 1px 3px rgba(0,0,0,.6); }
+  .tag { position: absolute; top: -8px; left: -6px; font-size: 9px; font-weight: 800; padding: 2px 5px; border-radius: 6px; background: #2b2e3c; color: var(--muted); }
+  .betchip { position: absolute; transform: translate(-50%, -50%); z-index: 2; display: flex; align-items: center; gap: 4px; font-weight: 800; font-size: 12px; color: var(--ivory); background: rgba(0,0,0,.45); padding: 2px 8px 2px 3px; border-radius: 999px; }
+  .betchip::before { content: ""; width: 14px; height: 14px; border-radius: 50%; background: radial-gradient(circle, var(--gold) 0 35%, #fff 36% 45%, var(--gold) 46%); box-shadow: 0 1px 2px rgba(0,0,0,.6); }
+  .handname { font-size: 10px; font-weight: 800; color: var(--gold-soft); margin-top: 1px; white-space: nowrap; }
+
+  /* ---------- Mein Bereich ---------- */
+  .mine { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; }
+  .mine .hole { display: flex; gap: 6px; }
+  .mine .info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .mine .mystack { font-family: var(--display); font-size: 22px; color: var(--gold-soft); font-weight: 700; }
+  .actions { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+  .actions .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .raise { display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 14px; background: #121319; border: 1px solid #2a2c38; }
+  .raise .amount { display: flex; align-items: baseline; justify-content: space-between; }
+  .raise .amount b { font-family: var(--display); font-size: 24px; color: var(--gold-soft); }
+  .presets { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .presets button { background: #22252f; color: var(--text); border-radius: 9px; padding: 8px 2px; font-weight: 700; font-size: 13px; }
+  input[type=range] { -webkit-appearance: none; appearance: none; height: 6px; padding: 0; border: 0; border-radius: 3px; background: linear-gradient(90deg, var(--gold) var(--p, 0%), #2c2f3c var(--p, 0%)); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 26px; height: 26px; border-radius: 50%; background: var(--gold-soft); border: 3px solid #1d1606; }
+  input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: var(--gold-soft); border: 3px solid #1d1606; }
+  .timer { height: 4px; border-radius: 3px; background: #22252f; overflow: hidden; }
+  .timer > i { display: block; height: 100%; background: var(--gold); }
+  .waiting { text-align: center; color: var(--muted); font-weight: 600; padding: 6px 0; }
+
+  /* ---------- Fenster ---------- */
+  .modal { position: fixed; inset: 0; background: rgba(5,5,8,.72); display: flex; align-items: flex-end; justify-content: center; z-index: 30; padding: 10px; }
+  .modal .sheet { width: 100%; max-width: 520px; max-height: 88vh; overflow: auto; background: #14151c; border: 1px solid #2c2f3c; border-radius: 20px; padding: 18px; }
+  .modal h2 { font-family: var(--display); color: var(--gold-soft); font-size: 22px; margin: 0 0 12px; letter-spacing: 1px; display: flex; justify-content: space-between; align-items: center; }
+  @media (min-width: 700px) { .modal { align-items: center; } }
+  .ranks { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+  .ranks li { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: start; }
+  .ranks .n { font-family: var(--display); color: var(--gold); font-weight: 700; }
+  .ranks .cards { display: flex; gap: 3px; margin-top: 4px; }
+  .ranks .t { font-weight: 800; }
+  .stats { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .stats th { text-align: right; color: var(--muted); font-weight: 700; font-size: 12px; padding: 6px 4px; border-bottom: 1px solid #2c2f3c; }
+  .stats td { text-align: right; padding: 8px 4px; border-bottom: 1px solid #1f212b; }
+  .stats th:first-child, .stats td:first-child { text-align: left; }
+  .pos { color: var(--win); font-weight: 800; } .neg { color: var(--lose); font-weight: 800; }
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .tile { background: #1b1d26; border: 1px solid #2c2f3c; border-radius: 12px; padding: 10px; }
+  .tile .k { font-size: 12px; color: var(--muted); font-weight: 700; }
+  .tile .v { font-family: var(--display); color: var(--gold-soft); font-size: 18px; font-weight: 700; margin-top: 2px; }
+  .menu button.item { display: block; width: 100%; text-align: left; background: #1b1d26; color: var(--text); padding: 13px 14px; border-radius: 12px; font-weight: 700; margin-bottom: 8px; }
+  .plist { display: flex; flex-direction: column; gap: 6px; }
+  .plist div { display: flex; justify-content: space-between; align-items: center; background: #1b1d26; border-radius: 10px; padding: 8px 10px; }
+
+  #toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--ivory); color: #1b1b1f; padding: 10px 16px; border-radius: 12px; font-weight: 700; opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 40; max-width: 90%; text-align: center; }
+  #toast.show { opacity: 1; }
+  .conn { position: fixed; top: 0; left: 0; right: 0; background: var(--red); color: #fff; text-align: center; font-size: 13px; padding: 4px; display: none; z-index: 50; }
+
+  @media (min-width: 760px) {
+    .table { height: 520px; }
+    .seat { width: 112px; }
+    .seat .nm, .seat .stk { font-size: 14px; }
+    .card { width: 56px; height: 78px; } .card .r { font-size: 18px; } .card .s { font-size: 32px; margin-top: 10px; }
+    .board .slot { width: 56px; height: 78px; }
+    .card.mini { width: 32px; height: 44px; } .card.mini .s { font-size: 18px; }
+    .seat .minis { height: 44px; }
+    .pot { font-size: 20px; }
+    .bottom { max-width: 620px; margin: 0 auto; }
+  }
+  @media (max-width: 759px) {
+    /* Handy: Board schmaler, damit die seitlichen Plätze nicht darüber liegen */
+    .board .card, .board .slot { width: 38px; height: 54px; }
+    .board .card .r { font-size: 13px; } .board .card .s { font-size: 22px; margin-top: 7px; }
+    .board { gap: 4px; min-height: 54px; }
+    .seat { width: 80px; }
+    .middle { width: 58%; }
+    .msg { font-size: 13px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .card.new { animation: none; } }
+</style>
+</head>
+<body>
+<div class="conn" id="conn">Verbindung weg… verbinde neu</div>
+<div id="app"></div>
+<div id="modal"></div>
+<div id="toast" role="status"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+// ===================== Grundlagen =====================
+const socket = io("/poker");
+const $app = document.getElementById("app");
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch {} },
+};
+let pid = store.get("pk_pid");
+if (!pid) { pid = Math.random().toString(36).slice(2) + Date.now().toString(36); store.set("pk_pid", pid); }
+
+let S = null, offset = 0, raiseTo = null, raiseOpen = false, lastBoardLen = 0, lastHandNo = 0, modal = null;
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmt = (n) => Number(n || 0).toLocaleString("de-CH");
+const me = () => S && S.seats.find((s) => s.id === S.me);
+const nameOf = (id) => { const s = S.seats.find((x) => x.id === id); return s ? s.name : (S.hand && S.hand.names && S.hand.names[id]) || "?"; };
+const isHost = () => S && S.hostId === S.me;
+
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+function card(c, size = "", cls = "") {
+  if (c === "back") return `<div class="card back ${size} ${cls}"></div>`;
+  const r = c[0] === "T" ? "10" : c[0];
+  const suit = { s: "♠", h: "♥", d: "♦", c: "♣" }[c[1]];
+  const red = c[1] === "h" || c[1] === "d";
+  return `<div class="card ${size} ${red ? "red" : ""} ${cls}" aria-label="${r}${suit}"><span class="r">${r}</span><span class="s">${suit}</span></div>`;
+}
+
+// ===================== Verbindung =====================
+socket.on("connect", () => {
+  document.getElementById("conn").style.display = "none";
+  const code = store.get("pk_room");
+  if (code) socket.emit("join", { code, name: store.get("pk_name"), playerId: pid });
+});
+socket.on("disconnect", () => (document.getElementById("conn").style.display = "block"));
+socket.on("toast", (msg) => {
+  toast(msg);
+  if (/gibt es nicht/.test(msg)) { store.set("pk_room", null); if (!S) render(); }
+});
+socket.on("kicked", (msg) => { store.set("pk_room", null); S = null; toast(msg); closeModal(); render(); });
+socket.on("state", (st) => {
+  const wasMyTurn = S && S.hand && S.hand.options;
+  S = st; offset = st.serverNow - Date.now();
+  store.set("pk_room", st.code);
+  if (!S.hand || !S.hand.options) { raiseOpen = false; raiseTo = null; }
+  if (S.hand && S.hand.options && !wasMyTurn) { try { navigator.vibrate && navigator.vibrate(100); } catch {} }
+  render();
+  if (modal === "stats") openModal("stats"); // Statistik live aktualisieren
+});
+
+// ===================== Startseite =====================
+function render() {
+  if (!S) return viewHome();
+  viewTable();
+}
+
+function viewHome() {
+  const code = (new URLSearchParams(location.search).get("r") || "").toUpperCase().slice(0, 4);
+  const set = { startChips: 1000, blinds: "10/20", turnTime: 30 };
+  $app.innerHTML = `
+    <div class="hero"><h1>POKER</h1><div class="suits">♠<b>♥</b>♣<b>♦</b></div>
+      <p class="muted">Texas Hold'em mit deinen Kollegen. Nur Spielchips.</p></div>
+    <div class="home">
+      <div class="panel stack">
+        <label class="field">Dein Name<input id="name" maxlength="14" autocomplete="nickname" value="${esc(store.get("pk_name") || "")}"></label>
+        <div class="row">
+          <input id="code" maxlength="4" placeholder="CODE" style="text-transform:uppercase;letter-spacing:5px;text-align:center;font-weight:800" value="${esc(code)}">
+          <button class="btn ${code ? "" : "dark"}" id="join">Beitreten</button>
+        </div>
+      </div>
+      ${code ? "" : `<div class="divider">oder einen eigenen Tisch eröffnen</div>
+      <div class="panel stack">
+        <div class="row">
+          <label class="field">Start-Chips<select id="chips">${[500, 1000, 2000, 5000, 10000].map((v) => `<option value="${v}" ${v === 1000 ? "selected" : ""}>${fmt(v)}</option>`).join("")}</select></label>
+          <label class="field">Blinds<select id="blinds">${["5/10", "10/20", "25/50", "50/100", "100/200"].map((v) => `<option ${v === "10/20" ? "selected" : ""}>${v}</option>`).join("")}</select></label>
+        </div>
+        <label class="field">Zeit pro Zug
+          <div class="seg" id="time">${[[15, "15 s"], [30, "30 s"], [60, "60 s"], [0, "Kein Limit"]].map(([v, l]) => `<button data-t="${v}" class="${v === 30 ? "on" : ""}">${l}</button>`).join("")}</div>
+        </label>
+        <button class="btn" id="create">Tisch eröffnen</button>
+      </div>`}
+      <p class="center small muted"><a href="/" style="color:var(--muted)">🎨 Fake Artist</a> · <a href="/umfrage" style="color:var(--muted)">📊 Umfrage</a></p>
+    </div>`;
+  const nameEl = document.getElementById("name"), codeEl = document.getElementById("code");
+  const needName = () => { const n = nameEl.value.trim(); if (!n) { nameEl.focus(); toast("Bitte gib zuerst deinen Namen ein."); return null; } store.set("pk_name", n); return n; };
+  codeEl.oninput = () => (codeEl.value = codeEl.value.toUpperCase().replace(/[^A-Z]/g, ""));
+  document.getElementById("join").onclick = () => {
+    const name = needName(); if (!name) return;
+    const c = codeEl.value.trim();
+    if (c.length !== 4) return toast("Der Code hat 4 Buchstaben.");
+    socket.emit("join", { code: c, name, playerId: pid });
+  };
+  const time = document.getElementById("time");
+  if (time) {
+    time.querySelectorAll("button").forEach((b) => (b.onclick = () => { time.querySelectorAll("button").forEach((x) => x.classList.remove("on")); b.classList.add("on"); set.turnTime = Number(b.dataset.t); }));
+    document.getElementById("create").onclick = () => {
+      const name = needName(); if (!name) return;
+      const [sb, bb] = document.getElementById("blinds").value.split("/").map(Number);
+      socket.emit("create", { name, playerId: pid, settings: { sb, bb, startChips: Number(document.getElementById("chips").value), turnTime: set.turnTime } });
+    };
+  }
+  if (code && !nameEl.value) nameEl.focus();
+}
+
+// ===================== Tisch =====================
+function viewTable() {
+  const h = S.hand, my = me();
+  const live = h && h.phase !== "done";
+  const n = S.seats.length;
+  // Sitzordnung so drehen, dass ich unten sitze
+  const myIdx = Math.max(0, S.seats.findIndex((s) => s.id === S.me));
+  const ordered = S.seats.slice(myIdx).concat(S.seats.slice(0, myIdx));
+  const winners = new Set(), winCards = new Set();
+  if (h && h.result) for (const p of h.result.pots) for (const w of p.winners) winners.add(w.id);
+  if (h && h.hands) for (const id of winners) if (h.hands[id]) h.hands[id].cards.forEach((c) => winCards.add(c));
+
+  const seatsHTML = ordered.map((s, k) => {
+    const a = (k / n) * Math.PI * 2;
+    const rx = innerWidth < 760 ? 39 : 43; // auf dem Handy etwas nach innen, damit nichts über den Rand ragt
+    const x = 50 - rx * Math.sin(a), y = 50 + 41 * Math.cos(a);
+    // Einsatz-Chip: oben/unten Richtung Mitte, bei Seitenplätzen unter dem Platz
+    const side = Math.abs(Math.sin(a)) > 0.6;
+    const bx = side ? x : 50 - 26 * Math.sin(a), by = side ? y + 12 : 47 + 22 * Math.cos(a);
+    const turn = live && h.toAct === s.id;
+    const status = s.leaving ? "geht" : !s.connected ? "offline" : s.sittingOut ? "setzt aus" : s.allIn ? "ALL-IN" : s.folded ? "Fold" : (s.lastAction || "");
+    const shown = h && h.hands && h.hands[s.id];
+    const minis = s.cards && s.id !== S.me ? s.cards.map((c) => card(c, "mini", h && h.phase === "done" && winCards.size ? (winCards.has(c) ? "win" : "dim") : "")).join("") : "";
+    return `
+      <div class="seat ${turn ? "turn" : ""} ${s.folded ? "folded" : ""} ${!s.connected || s.sittingOut ? "away" : ""} ${s.id === S.me ? "me" : ""} ${h && h.phase === "done" && winners.has(s.id) ? "winner" : ""}" style="left:${x}%;top:${y}%">
+        <div class="minis">${minis}</div>
+        <div class="plate">
+          ${s.dealer ? `<span class="dbtn" title="Dealer">D</span>` : ""}
+          ${s.sb ? `<span class="tag">SB</span>` : s.bb ? `<span class="tag">BB</span>` : ""}
+          <div class="nm">${esc(s.name)}</div>
+          <div class="stk">${s.stack ? fmt(s.stack) : s.inHand && s.allIn ? "0" : "pleite"}</div>
+          <div class="act">${esc(status)}</div>
+          ${shown ? `<div class="handname">${esc(shown.name)}</div>` : ""}
+          ${turn && S.deadline ? `<div class="bar"><i data-timer></i></div>` : ""}
+        </div>
+      </div>
+      ${s.bet ? `<div class="betchip" style="left:${bx}%;top:${by}%">${fmt(s.bet)}</div>` : ""}`;
+  }).join("");
+
+  // Mitte: Pot, Board, Nachricht
+  let middle = "";
+  if (!S.started) {
+    middle = `<div class="pot">TISCH ${esc(S.code)}</div><div class="msg">${n < 2 ? "Warte auf Mitspieler…" : isHost() ? "Bereit? Starte das Spiel." : "Warte, bis " + esc(nameOf(S.hostId)) + " startet…"}</div>`;
+  } else if (!h || (h.phase === "done" && !h.result)) {
+    middle = `<div class="msg">Warte auf Spieler…</div>`;
+  } else {
+    const board = [];
+    for (let i = 0; i < 5; i++) {
+      const c = h.board[i];
+      board.push(c ? card(c, "", (i >= lastBoardLen && h.no === lastHandNo ? "new " : "") + (h.phase === "done" && winCards.size ? (winCards.has(c) ? "win" : "dim") : "")) : `<div class="slot"></div>`);
+    }
+    middle = `<div class="pot">POT ${fmt(h.pot)}</div><div class="board">${board.join("")}</div><div class="msg">${resultText(h)}</div>`;
+  }
+  if (S.paused && S.started) middle += `<div class="msg gold">⏸ Pausiert${h && h.phase !== "done" ? " nach dieser Hand" : ""}</div>`;
+
+  $app.innerHTML = `
+    <div class="top">
+      <button class="chip" id="codeChip" title="Link teilen">Tisch <b>${esc(S.code)}</b></button>
+      <span class="chip">${fmt(S.settings.sb)}/${fmt(S.settings.bb)}</span>
+      <span class="spacer"></span>
+      <button class="iconbtn" data-m="stats" title="Statistik" aria-label="Statistik">📊</button>
+      <button class="iconbtn" data-m="ranks" title="Hand-Rangliste" aria-label="Hand-Rangliste">🃏</button>
+      <button class="iconbtn" data-m="menu" title="Menü" aria-label="Menü">☰</button>
+    </div>
+    <div class="table"><div class="felt"></div>${seatsHTML}<div class="middle">${middle}</div></div>
+    <div class="bottom">${bottomHTML()}</div>`;
+
+  if (h) { lastBoardLen = h.board.length; lastHandNo = h.no; }
+  bindTable();
+  tickTimers();
+}
+
+function resultText(h) {
+  if (h.phase !== "done" || !h.result) {
+    if (h.runout) return "All-in! Die Karten werden aufgedeckt…";
+    if (h.phase === "betting") return h.toAct === S.me ? `<span class="gold">Du bist dran</span>` : `${esc(nameOf(h.toAct))} ist dran`;
+    return "";
+  }
+  const r = h.result;
+  if (r.byFold) return `<span class="gold">${esc(nameOf(r.winnerId))}</span> gewinnt ${fmt(r.pots[0].amount)}`;
+  return r.pots.map((p, i) => {
+    const who = p.winners.map((w) => esc(nameOf(w.id))).join(" & ");
+    const label = r.pots.length > 1 ? (i === 0 ? "Haupt-Pot: " : "Side-Pot: ") : "";
+    return `${label}<span class="gold">${who}</span> ${p.winners.length > 1 ? "teilen" : "gewinnt"} ${fmt(p.amount)} · ${esc(p.handName)}`;
+  }).join("<br>");
+}
+
+function bottomHTML() {
+  const h = S.hand, my = me();
+  if (!my) return "";
+  const inHand = h && h.phase !== "done" && my.inHand;
+  const hole = my.cards && my.cards[0] !== "back" ? my.cards : null;
+  const winCards = new Set();
+  if (h && h.hands && h.hands[S.me]) h.hands[S.me].cards.forEach((c) => winCards.add(c));
+  let html = `<div class="panel">
+    <div class="mine">
+      <div class="hole">${hole ? hole.map((c) => card(c, "big", h.phase === "done" && winCards.size ? (winCards.has(c) ? "win" : "") : my.folded ? "dim" : "")).join("") : card("back", "big", "dim") + card("back", "big", "dim")}</div>
+      <div class="info">
+        <div class="mystack">${fmt(my.stack)}</div>
+        <div class="muted small">${myStatus(my, h)}</div>
+      </div>
+    </div>`;
+
+  // Vor dem Start
+  if (!S.started) {
+    html += isHost()
+      ? `<div class="actions"><button class="btn" id="startBtn" ${S.seats.length < 2 ? "disabled" : ""}>Spiel starten</button>
+         <button class="btn ghost" id="shareBtn">🔗 Link teilen</button></div>`
+      : `<div class="actions"><div class="waiting">Warte, bis ${esc(nameOf(S.hostId))} das Spiel startet…</div><button class="btn ghost" id="shareBtn">🔗 Link teilen</button></div>`;
+    return html + `</div>`;
+  }
+
+  const o = h && h.options;
+  if (o) {
+    const pot = h.pot;
+    if (raiseTo == null) raiseTo = o.minRaiseTo;
+    raiseTo = Math.min(o.maxRaiseTo, Math.max(o.minRaiseTo, raiseTo));
+    html += `<div class="actions">
+      ${S.deadline ? `<div class="timer"><i data-timer></i></div>` : ""}
+      <div class="row3">
+        <button class="btn fold" data-a="fold">Fold</button>
+        <button class="btn dark" data-a="${o.canCheck ? "check" : "call"}">${o.canCheck ? "Check" : o.toCall >= my.stack ? "All-in " + fmt(o.toCall) : "Call " + fmt(o.toCall)}</button>
+        <button class="btn" id="raiseToggle" ${o.canRaise ? "" : "disabled"}>${o.isBet ? "Setzen" : "Erhöhen"}</button>
+      </div>
+      ${raiseOpen && o.canRaise ? raiseHTML(o, pot) : ""}
+    </div>`;
+  } else if (h && h.phase === "done" && h.result && h.result.byFold && h.result.winnerId === S.me && my.cards && !h.revealed.includes(S.me)) {
+    html += `<div class="actions"><button class="btn ghost" id="showBtn">🂠 Karten zeigen</button></div>`;
+  } else if (!inHand && my.stack === 0) {
+    html += `<div class="actions"><button class="btn" id="rebuy">Nachkaufen (+${fmt(S.settings.startChips)})</button></div>`;
+  } else if (inHand && h.phase === "betting") {
+    html += `<div class="waiting">Warte auf ${esc(nameOf(h.toAct))}…</div>`;
+  }
+  if (S.mySitOut) html += `<div class="actions"><button class="btn" id="sitIn">Wieder mitspielen</button></div>`;
+  return html + `</div>`;
+}
+
+function myStatus(my, h) {
+  if (S.mySitOut) return "Du setzt aus";
+  if (!h || !my.inHand) return S.started ? "Du bist ab der nächsten Hand dabei" : "Am Tisch";
+  if (h.phase === "done") {
+    const won = h.result && h.result.pots.reduce((s, p) => s + (p.winners.find((w) => w.id === S.me) || { amount: 0 }).amount, 0);
+    return won ? `<span class="pos">+${fmt(won)} gewonnen</span>${h.hands && h.hands[S.me] ? " · " + esc(h.hands[S.me].name) : ""}` : "Hand vorbei";
+  }
+  if (my.folded) return "Gefoldet";
+  if (my.allIn) return "All-in";
+  return my.bet ? `Im Pot: ${fmt(my.bet)} in dieser Runde` : "Im Spiel";
+}
+
+function raiseHTML(o, pot) {
+  const toCallPot = pot + o.toCall;
+  const presets = [
+    ["Min", o.minRaiseTo],
+    ["½ Pot", (o.isBet ? 0 : o.myBet + o.toCall) + Math.ceil(toCallPot / 2)],
+    ["¾ Pot", (o.isBet ? 0 : o.myBet + o.toCall) + Math.ceil(toCallPot * 0.75)],
+    ["Pot", (o.isBet ? 0 : o.myBet + o.toCall) + toCallPot],
+    ["All-in", o.maxRaiseTo],
+  ];
+  const pct = o.maxRaiseTo > o.minRaiseTo ? ((raiseTo - o.minRaiseTo) / (o.maxRaiseTo - o.minRaiseTo)) * 100 : 100;
+  return `<div class="raise">
+    <div class="amount"><span class="muted small">${o.isBet ? "Setzen" : "Erhöhen auf"}</span><b id="raiseVal">${fmt(raiseTo)}</b></div>
+    <input type="range" id="slider" min="${o.minRaiseTo}" max="${o.maxRaiseTo}" step="${S.settings.sb}" value="${raiseTo}" style="--p:${pct}%" aria-label="Betrag">
+    <div class="presets">${presets.map(([l, v]) => `<button data-p="${Math.min(o.maxRaiseTo, Math.max(o.minRaiseTo, v))}">${l}</button>`).join("")}</div>
+    <button class="btn" id="raiseGo">${raiseTo >= o.maxRaiseTo ? "All-in " + fmt(raiseTo) : (o.isBet ? "Setzen " : "Erhöhen auf ") + fmt(raiseTo)}</button>
+  </div>`;
+}
+
+function bindTable() {
+  document.getElementById("codeChip").onclick = shareLink;
+  document.querySelectorAll("[data-m]").forEach((b) => (b.onclick = () => openModal(b.dataset.m)));
+  const on = (id, fn) => { const el = document.getElementById(id); if (el) el.onclick = fn; };
+  on("startBtn", () => socket.emit("start"));
+  on("shareBtn", shareLink);
+  on("rebuy", () => socket.emit("rebuy"));
+  on("sitIn", () => socket.emit("sitout", false));
+  on("showBtn", () => { socket.emit("show"); });
+  document.querySelectorAll("[data-a]").forEach((b) => (b.onclick = () => { socket.emit("act", { type: b.dataset.a }); raiseOpen = false; }));
+  on("raiseToggle", () => { raiseOpen = !raiseOpen; render(); });
+  const slider = document.getElementById("slider");
+  if (slider) {
+    const upd = () => {
+      raiseTo = Number(slider.value);
+      const o = S.hand.options;
+      if (raiseTo + S.settings.sb > o.maxRaiseTo) raiseTo = o.maxRaiseTo; // letzter Schritt = All-in
+      document.getElementById("raiseVal").textContent = fmt(raiseTo);
+      const pct = o.maxRaiseTo > o.minRaiseTo ? ((raiseTo - o.minRaiseTo) / (o.maxRaiseTo - o.minRaiseTo)) * 100 : 100;
+      slider.style.setProperty("--p", pct + "%");
+      document.getElementById("raiseGo").textContent = raiseTo >= o.maxRaiseTo ? "All-in " + fmt(raiseTo) : (o.isBet ? "Setzen " : "Erhöhen auf ") + fmt(raiseTo);
+    };
+    slider.oninput = upd;
+    document.querySelectorAll("[data-p]").forEach((b) => (b.onclick = () => { raiseTo = Number(b.dataset.p); render(); }));
+    on("raiseGo", () => {
+      const o = S.hand.options;
+      socket.emit("act", raiseTo >= o.maxRaiseTo ? { type: "allin" } : { type: "raise", amount: raiseTo });
+      raiseOpen = false;
+    });
+  }
+}
+
+// Zeitbalken flüssig aktualisieren, ohne neu zu zeichnen
+function tickTimers() {
+  if (!S || !S.deadline) return;
+  const total = (S.settings.turnTime || 8) * 1000;
+  const left = Math.max(0, S.deadline - (Date.now() + offset));
+  const pct = Math.min(100, (left / total) * 100);
+  document.querySelectorAll("[data-timer]").forEach((el) => {
+    el.style.width = pct + "%";
+    el.style.background = left < 5000 ? "var(--lose)" : "";
+  });
+}
+setInterval(tickTimers, 200);
+window.addEventListener("resize", () => { if (S) render(); });
+
+async function shareLink() {
+  const url = location.origin + "/poker?r=" + S.code;
+  try { if (navigator.share) { await navigator.share({ title: "Poker", text: "Komm an meinen Pokertisch: " + S.code, url }); return; } } catch (e) { if (e && e.name === "AbortError") return; }
+  try { await navigator.clipboard.writeText(url); toast("Link kopiert!"); } catch { toast(url); }
+}
+
+// ===================== Fenster =====================
+function closeModal() { modal = null; document.getElementById("modal").innerHTML = ""; }
+function openModal(kind) {
+  modal = kind;
+  const box = document.getElementById("modal");
+  const body = { stats: statsHTML, ranks: ranksHTML, menu: menuHTML, settings: settingsHTML }[kind]();
+  const scroll = box.querySelector(".sheet") ? box.querySelector(".sheet").scrollTop : 0;
+  box.innerHTML = `<div class="modal" id="bg"><div class="sheet" role="dialog">${body}</div></div>`;
+  box.querySelector(".sheet").scrollTop = scroll;
+  document.getElementById("bg").onclick = (e) => { if (e.target.id === "bg") closeModal(); };
+  box.querySelectorAll("[data-close]").forEach((b) => (b.onclick = closeModal));
+  if (kind === "menu") bindMenu();
+  if (kind === "settings") bindSettings();
+}
+const head = (t) => `<h2>${t}<button class="link" data-close>Schliessen</button></h2>`;
+
+function statsHTML() {
+  const st = S.stats;
+  return `${head("Statistik")}
+    <div class="tiles">
+      <div class="tile"><div class="k">Gespielte Hände</div><div class="v">${fmt(st.hands)}</div></div>
+      <div class="tile"><div class="k">Grösster Pot</div><div class="v">${st.biggestPot ? fmt(st.biggestPot.amount) : "–"}</div>
+        <div class="small muted">${st.biggestPot ? esc(st.biggestPot.names.join(" & ")) : ""}</div></div>
+      <div class="tile" style="grid-column:1/-1"><div class="k">Beste Hand des Abends</div>
+        ${st.bestHand ? `<div class="v">${esc(st.bestHand.name)}</div><div class="small muted" style="margin-bottom:6px">${esc(st.bestHand.player)}</div><div style="display:flex;gap:3px">${st.bestHand.cards.map((c) => card(c, "mini")).join("")}</div>` : `<div class="v">–</div>`}</div>
+    </div>
+    <table class="stats">
+      <thead><tr><th>Spieler</th><th>Bilanz</th><th>Hände gew.</th><th>Grösster Gewinn</th><th>Käufe</th></tr></thead>
+      <tbody>${st.rows.map((r) => `<tr><td>${esc(r.name)}${r.present ? "" : ' <span class="muted small">(weg)</span>'}</td>
+        <td class="${r.net > 0 ? "pos" : r.net < 0 ? "neg" : ""}">${r.net > 0 ? "+" : ""}${fmt(r.net)}</td>
+        <td>${r.handsWon}</td><td>${r.biggestWin ? fmt(r.biggestWin) : "–"}</td><td>${r.buyIns}</td></tr>`).join("")}</tbody>
+    </table>
+    <p class="small muted">Bilanz = Chips jetzt minus alle gekauften Chips. Die Statistik gilt für diesen Tisch.</p>`;
+}
+
+function ranksHTML() {
+  const list = [
+    ["Royal Flush", "A, K, D, B, 10 in einer Farbe", "Ah Kh Qh Jh Th"],
+    ["Straight Flush", "5 aufeinanderfolgende Karten in einer Farbe", "9s 8s 7s 6s 5s"],
+    ["Vierling", "4 gleiche Karten", "Qc Qd Qh Qs 7d"],
+    ["Full House", "Drilling + Paar", "Kc Kd Ks 4h 4c"],
+    ["Flush", "5 Karten in einer Farbe", "Ad Jd 8d 5d 2d"],
+    ["Strasse", "5 aufeinanderfolgende Karten", "Tc 9h 8s 7d 6c"],
+    ["Drilling", "3 gleiche Karten", "7s 7h 7d Kc 2s"],
+    ["Zwei Paare", "2 verschiedene Paare", "Jc Jd 5s 5h Ac"],
+    ["Ein Paar", "2 gleiche Karten", "Ts Th Ad 8c 4s"],
+    ["Höchste Karte", "Nichts davon: die höchste Karte zählt", "Ac Js 9d 6h 3c"],
+  ];
+  return `${head("Welche Hand gewinnt?")}
+    <ol class="ranks">${list.map(([n, d, cs], i) => `<li><span class="n">${i + 1}</span><div><div class="t">${n}</div><div class="small muted">${d}</div>
+      <div class="cards">${cs.split(" ").map((c) => card(c, "mini")).join("")}</div></div></li>`).join("")}</ol>
+    <p class="small muted" style="margin-top:14px">Es zählen immer die besten 5 aus deinen 2 Karten und den 5 Karten in der Mitte. Bei Gleichstand entscheiden die übrigen Karten (Kicker). Ein Ass zählt auch als 1 (A-2-3-4-5).</p>`;
+}
+
+function menuHTML() {
+  const my = me();
+  return `${head("Menü")}<div class="menu">
+    <button class="item" id="mShare">🔗 Link zum Tisch teilen</button>
+    ${isHost() ? `<button class="item" id="mSettings">⚙️ Tisch-Einstellungen</button>
+      ${S.started ? `<button class="item" id="mPause">${S.paused ? "▶️ Spiel fortsetzen" : "⏸ Nach dieser Hand pausieren"}</button>` : ""}` : ""}
+    ${S.started ? `<button class="item" id="mSit">${S.mySitOut ? "🙋 Wieder mitspielen" : "☕ Aussetzen (keine neuen Hände)"}</button>` : ""}
+    ${my && my.stack === 0 && !(S.hand && S.hand.phase !== "done" && my.inHand) ? `<button class="item" id="mRebuy">💰 Nachkaufen (+${fmt(S.settings.startChips)})</button>` : ""}
+    <button class="item" id="mLeave" style="color:var(--lose)">🚪 Tisch verlassen</button>
+    <p class="small muted">Blinds ${fmt(S.settings.sb)}/${fmt(S.settings.bb)} · Start-Chips ${fmt(S.settings.startChips)} · ${S.settings.turnTime ? S.settings.turnTime + " s pro Zug" : "kein Zeitlimit"}</p>
+  </div>`;
+}
+function bindMenu() {
+  const on = (id, fn) => { const el = document.getElementById(id); if (el) el.onclick = fn; };
+  on("mShare", shareLink);
+  on("mSettings", () => openModal("settings"));
+  on("mPause", () => { socket.emit("pause", !S.paused); closeModal(); });
+  on("mSit", () => { socket.emit("sitout", !S.mySitOut); closeModal(); });
+  on("mRebuy", () => { socket.emit("rebuy"); closeModal(); });
+  on("mLeave", () => {
+    socket.emit("leave"); store.set("pk_room", null); S = null; closeModal();
+    history.replaceState(null, "", location.pathname); render();
+  });
+}
+
+let draftSettings = null;
+function settingsHTML() {
+  const s = draftSettings || (draftSettings = { ...S.settings });
+  const others = S.seats.filter((x) => x.id !== S.me);
+  return `${head("Tisch-Einstellungen")}<div class="stack">
+    <div class="row">
+      <label class="field">Small Blind<input type="number" id="sSb" min="1" value="${s.sb}" inputmode="numeric"></label>
+      <label class="field">Big Blind<input type="number" id="sBb" min="1" value="${s.bb}" inputmode="numeric"></label>
+    </div>
+    <label class="field">Start-Chips (auch fürs Nachkaufen)<input type="number" id="sChips" min="100" value="${s.startChips}" inputmode="numeric"></label>
+    <label class="field">Zeit pro Zug
+      <div class="seg" id="sTime">${[[15, "15 s"], [30, "30 s"], [60, "60 s"], [0, "Kein Limit"]].map(([v, l]) => `<button data-t="${v}" class="${s.turnTime === v ? "on" : ""}">${l}</button>`).join("")}</div></label>
+    <button class="btn" id="sSave">Speichern</button>
+    <p class="small muted" style="margin:0">Neue Blinds und Zeitlimit gelten ab der nächsten Hand.</p>
+    ${others.length ? `<div class="k small muted" style="margin-top:6px;font-weight:700">Spieler entfernen</div>
+      <div class="plist">${others.map((p) => `<div><span>${esc(p.name)} ${p.connected ? "" : '<span class="muted small">(offline)</span>'}</span><button class="link" data-kick="${esc(p.id)}">Entfernen</button></div>`).join("")}</div>` : ""}
+  </div>`;
+}
+function bindSettings() {
+  const t = document.getElementById("sTime");
+  t.querySelectorAll("button").forEach((b) => (b.onclick = () => { readSettings(); draftSettings.turnTime = Number(b.dataset.t); openModal("settings"); }));
+  document.getElementById("sSave").onclick = () => {
+    readSettings();
+    socket.emit("settings", draftSettings);
+    draftSettings = null; closeModal(); toast("Gespeichert. Gilt ab der nächsten Hand.");
+  };
+  document.querySelectorAll("[data-kick]").forEach((b) => (b.onclick = () => { socket.emit("kick", b.dataset.kick); }));
+  document.querySelector("#bg").addEventListener("click", (e) => { if (e.target.id === "bg") draftSettings = null; });
+  document.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", () => (draftSettings = null)));
+}
+function readSettings() {
+  draftSettings.sb = Number(document.getElementById("sSb").value) || draftSettings.sb;
+  draftSettings.bb = Number(document.getElementById("sBb").value) || draftSettings.bb;
+  draftSettings.startChips = Number(document.getElementById("sChips").value) || draftSettings.startChips;
+}
+
+render();
+</script>
+</body>
+</html>
