@@ -1,8 +1,9 @@
 # Fake Artist 🎨🤫 + Umfrage-Tool 📊
 
-Auf diesem Server laufen zwei Dinge:
+Auf diesem Server laufen drei Dinge:
 - **Fake Artist** unter `/` (das Spiel)
 - **Umfrage-Tool** unter `/umfrage` (Abstimmungen ohne Konto)
+- **Poker** unter `/poker` (Texas Hold'em mit Spielchips)
 
 Ein Zeichen- und Bluff-Spiel fürs Handy, für 3–10 Leute (am besten 4–8).
 Alle zeichnen gemeinsam ein geheimes Wort, Strich für Strich. Nur einer, der **Fake**, kennt das Wort nicht und muss so tun, als ob.
@@ -71,6 +72,12 @@ Ohne Datenbank speichert der Server Umfragen nur im Arbeitsspeicher. Wenn der Gr
    - Value: den kopierten Link einfügen
 5. Speichern und neu deployen. Im Log sollte stehen: `Umfragen werden gespeichert in: Postgres-Datenbank`.
 
+## Poker 🃏
+Öffne `/poker`, eröffne einen Tisch und teile den Link. Texas Hold'em No-Limit als Cash-Game, 2–9 Spieler, nur Spielchips.
+- Der Host stellt Start-Chips, Blinds und die Zeit pro Zug ein (im Menü auch später änderbar, gilt ab der nächsten Hand).
+- Wer pleite ist, kann nachkaufen. Die Statistik (📊) zählt für den Tisch, die Hand-Rangliste (🃏) zeigt, welche Hand gewinnt.
+- Dateien: `poker-engine.js` (Spielregeln), `poker.js` (Tische und Timer), `public/poker.html` (Oberfläche).
+
 ## Auf dem eigenen Computer testen
 Dafür brauchst du [Node.js](https://nodejs.org), Version 18 oder neuer.
 
@@ -87,3 +94,4 @@ Danach öffnest du http://localhost:3000. Um alleine zu testen, öffne drei Brow
 - `public/index.html`: die Handy-Oberfläche von Fake Artist
 - `polls.js`: der Server-Teil vom Umfrage-Tool (Speichern, Abstimmen)
 - `public/umfrage.html`: die Oberfläche vom Umfrage-Tool
+- `poker-engine.js`, `poker.js`, `public/poker.html`: Poker

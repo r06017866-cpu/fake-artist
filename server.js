@@ -21,9 +21,13 @@ app.get("/health", (_req, res) => res.send("ok"));
 // Umfrage-Tool (siehe polls.js)
 const { createPollRouter } = require("./polls");
 app.use("/api", createPollRouter());
+app.get("/poker", (_req, res) => res.sendFile(path.join(__dirname, "public", "poker.html")));
 app.get(["/umfrage", "/umfrage/:id"], (_req, res) => res.sendFile(path.join(__dirname, "public", "umfrage.html")));
 const server = http.createServer(app);
 const io = new Server(server, { maxHttpBufferSize: 1e5 });
+
+// Poker (siehe poker.js) – eigener Bereich "/poker", unabhängig von Fake Artist
+require("./poker")(io);
 
 /** code -> room */
 const rooms = new Map();
