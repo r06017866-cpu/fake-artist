@@ -4,6 +4,7 @@ Auf diesem Server laufen drei Dinge:
 - **Fake Artist** unter `/` (das Spiel)
 - **Umfrage-Tool** unter `/umfrage` (Abstimmungen ohne Konto)
 - **Poker** unter `/poker` (Texas Hold'em mit Spielchips)
+- **Ice Rumble** unter `/icerumble/` (Pinguin-Arena-Spiel, läuft komplett im Browser)
 
 Ein Zeichen- und Bluff-Spiel fürs Handy, für 3–10 Leute (am besten 4–8).
 Alle zeichnen gemeinsam ein geheimes Wort, Strich für Strich. Nur einer, der **Fake**, kennt das Wort nicht und muss so tun, als ob.
@@ -77,6 +78,10 @@ Ohne Datenbank speichert der Server Umfragen nur im Arbeitsspeicher. Wenn der Gr
 - Der Host stellt Start-Chips, Blinds und die Zeit pro Zug ein (im Menü auch später änderbar, gilt ab der nächsten Hand).
 - Wer pleite ist, kann nachkaufen. Die Statistik (📊) zählt für den Tisch, die Hand-Rangliste (🃏) zeigt, welche Hand gewinnt.
 - Dateien: `poker-engine.js` (Spielregeln), `poker.js` (Tische und Timer), `public/poker.html` (Oberfläche).
+
+## Ice Rumble 🐧
+Ein Einzelspieler-Arcade-Spiel: Schubs die Bot-Pinguine von der Eisscholle. Alles steckt im Ordner `public/icerumble/` (`index.html` + `game.js`), ohne Server-Logik und ohne externe Anfragen.
+- Für Poki: Den Ordner `icerumble` als ZIP einreichen und in `index.html` die Zeile mit dem Poki-SDK-Script einfügen (steht als Kommentar drin). Werbung zwischen Runden und «Münzen verdoppeln» werden dann automatisch aktiv.
 
 ## Auf dem eigenen Computer testen
 Dafür brauchst du [Node.js](https://nodejs.org), Version 18 oder neuer.
