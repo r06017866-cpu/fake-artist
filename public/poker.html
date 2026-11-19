@@ -296,7 +296,7 @@ function viewHome() {
         </label>
         <button class="btn" id="create">Tisch eröffnen</button>
       </div>`}
-      <p class="center small muted"><a href="/" style="color:var(--muted)">🎨 Fake Artist</a> · <a href="/umfrage" style="color:var(--muted)">📊 Umfrage</a></p>
+      <p class="center small muted"><a href="/" style="color:var(--muted)">🎨 Fake Artist</a> · <a href="/umfrage" style="color:var(--muted)">📊 Umfrage</a> · <a href="/icerumble/" style="color:var(--muted)">🐧 Ice Rumble</a></p>
     </div>`;
   const nameEl = document.getElementById("name"), codeEl = document.getElementById("code");
   const needName = () => { const n = nameEl.value.trim(); if (!n) { nameEl.focus(); toast("Bitte gib zuerst deinen Namen ein."); return null; } store.set("pk_name", n); return n; };

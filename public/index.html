@@ -14,7 +14,7 @@
     --good: #06d6a0; --bad: #ff4d6d; --radius: 18px;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { margin: 0; height: 100%; }
+  html, body { margin: 0; height: 100%; overscroll-behavior: none; }
   body {
     font-family: "Baloo 2", system-ui, -apple-system, "Segoe UI", sans-serif;
     background: radial-gradient(circle at 20% 0%, #3b2f7a 0%, var(--bg) 55%) fixed;
@@ -76,7 +76,7 @@
   .chip b { color: var(--accent); }
   .peek { user-select: none; -webkit-user-select: none; cursor: pointer; }
   #canvasWrap { position: relative; }
-  canvas { display: block; width: 100%; aspect-ratio: 1 / 1; background: #fffdf5; border-radius: 18px; touch-action: none; box-shadow: 0 6px 0 #120f26; }
+  canvas { display: block; width: 100%; aspect-ratio: 1 / 1; background: #fffdf5; border-radius: 18px; touch-action: none; box-shadow: 0 6px 0 #120f26; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
   canvas.myturn { outline: 4px solid var(--accent); outline-offset: 3px; }
   .turnbar { display: flex; gap: 6px; flex-wrap: wrap; margin: 14px 0 6px; }
   .turnbar > span { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 99px; background: var(--card); font-size: 14px; border: 2px solid transparent; }
@@ -387,27 +387,36 @@ function setupCanvas(el, interactive) {
     const rect = canvas.getBoundingClientRect();
     return [Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width)), Math.min(1, Math.max(0, (e.clientY - rect.top) / rect.height))];
   };
+  let activeId = null; // nur der erste Finger zeichnet (kein Handballen, kein zweiter Finger)
   canvas.addEventListener("pointerdown", (e) => {
+    if (activeId !== null) return;
     if (!S || S.phase !== "draw" || S.round.currentPlayer !== S.me || strokeSentTurn === S.round.turn) return;
     e.preventDefault();
-    canvas.setPointerCapture(e.pointerId);
+    activeId = e.pointerId;
+    try { canvas.setPointerCapture(e.pointerId); } catch {}
     const p = pos(e);
     drawing = { color: player(S.me).color, points: [p] };
     buffer = [p]; flush();
   });
   canvas.addEventListener("pointermove", (e) => {
-    if (!drawing) return;
+    if (!drawing || e.pointerId !== activeId) return;
     e.preventDefault();
-    const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+    let evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
+    if (!evs || !evs.length) evs = [e];
     for (const ev of evs) {
+      if (ev.clientX === 0 && ev.clientY === 0) continue; // fehlerhafter Punkt
       const p = pos(ev), last = drawing.points[drawing.points.length - 1];
-      if (Math.hypot(p[0] - last[0], p[1] - last[1]) < 0.003) continue;
+      const d = Math.hypot(p[0] - last[0], p[1] - last[1]);
+      if (d < 0.003) continue;
+      if (d > 0.35) continue; // unmöglicher Sprung -> ignorieren
       drawing.points.push(p); buffer.push(p);
     }
     redraw();
     if (performance.now() - lastSend > 45) flush();
   });
-  const end = () => {
+  const end = (e) => {
+    if (e && e.pointerId !== activeId) return;
+    activeId = null;
     if (!drawing) return;
     flush();
     if (drawing.points.length < 2) { drawing = null; socket.emit("stroke:end"); redraw(); return toast("Zu kurz – zeichne einen Strich!"); }
@@ -419,6 +428,10 @@ function setupCanvas(el, interactive) {
   };
   canvas.addEventListener("pointerup", end);
   canvas.addEventListener("pointercancel", end);
+  // iPhone: verhindern, dass die Seite beim Zeichnen scrollt oder zurückfedert
+  const stopTouch = (e) => { if (e.cancelable) e.preventDefault(); };
+  canvas.addEventListener("touchstart", stopTouch, { passive: false });
+  canvas.addEventListener("touchmove", stopTouch, { passive: false });
 }
 
 function sizeCanvas() {
