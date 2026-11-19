@@ -53,14 +53,25 @@
   .logo h1 span { color: var(--sun); -webkit-text-stroke-color: #b37f00; }
   .menu-card { display: flex; flex-direction: column; gap: 12px; }
   .hello { display: flex; align-items: center; gap: 12px; }
-  .hello p { margin: 0; font-weight: 700; font-size: 15px; color: #315a7d; }
-  .arenas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .arena { background: #fff; border-radius: 16px; padding: 10px 6px; display: flex; flex-direction: column; align-items: center; gap: 2px; box-shadow: 0 4px 0 #a9cbe4; border: 3px solid transparent; }
+  .hello p { margin: 0; font-weight: 700; font-size: 13px; color: #315a7d; }
+  .arenas { display: flex; gap: 8px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 2px 2px 8px; margin: 0 -4px; }
+  .arenas::-webkit-scrollbar { height: 6px; } .arenas::-webkit-scrollbar-thumb { background: #bcd7ec; border-radius: 3px; }
+  .arena { flex: 0 0 118px; scroll-snap-align: start; background: #fff; border-radius: 16px; padding: 10px 6px; display: flex; flex-direction: column; align-items: center; gap: 2px; box-shadow: 0 4px 0 #a9cbe4; border: 3px solid transparent; }
   .arena.sel { border-color: #3d9be9; background: #f1f9ff; }
   .arena.locked { opacity: .55; }
   .arena .ai { font-size: 26px; }
   .arena .an { font-weight: 900; font-size: 14px; }
-  .arena .ad { font-size: 11px; color: #4a6e8c; text-align: center; line-height: 1.2; min-height: 26px; }
+  .arena .ad { font-size: 11px; color: #4a6e8c; text-align: center; line-height: 1.25; min-height: 28px; }
+  .who { flex: 1; min-width: 0; }
+  .lvl { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; }
+  .lvl b { font-size: 16px; } .lvl span { color: #4a6e8c; font-weight: 700; font-size: 12px; }
+  .lvlbar { height: 10px; background: #d6e8f5; border-radius: 6px; overflow: hidden; margin: 3px 0 4px; }
+  .lvlbar i { display: block; height: 100%; background: linear-gradient(90deg, #3d9be9, #6fd0ff); border-radius: 6px; }
+  #overStats .xp { grid-template-columns: auto 1fr auto; background: #eaf5ff; }
+  #overStats .xp i { display: block; height: 10px; background: #d6e8f5; border-radius: 6px; overflow: hidden; }
+  #overStats .xp u { display: block; height: 100%; background: #3d9be9; text-decoration: none; }
+  #unlockMsg div + div { margin-top: 4px; }
+  .skin.ach .sp { font-size: 10px; line-height: 1.2; text-align: center; padding: 0 2px; }
   .note { min-height: 20px; text-align: center; font-weight: 800; color: var(--red); opacity: 0; transition: opacity .2s; font-size: 14px; }
   .note.show { opacity: 1; }
   .hint { text-align: center; font-size: 12px; color: #4a6e8c; font-weight: 700; }
@@ -108,7 +119,7 @@
   .row b { display: block; }
   .row small { color: #4a6e8c; font-weight: 700; font-size: 12px; }
   .pips { display: flex; gap: 4px; margin-top: 5px; }
-  .pips i { width: 18px; height: 8px; border-radius: 4px; background: #d6e8f5; }
+  .pips { gap: 3px; } .pips i { width: 12px; height: 8px; border-radius: 4px; background: #d6e8f5; }
   .pips i.on { background: #3d9be9; }
   .buy { background: var(--sun); color: #3a2a00; font-weight: 900; padding: 10px 12px; border-radius: 12px; box-shadow: 0 3px 0 var(--sun-dark); min-width: 74px; }
   .buy:disabled { background: #d6e8f5; color: #7d97ad; box-shadow: none; }
@@ -133,7 +144,8 @@
   <div class="topbar"><span class="pill">🪙 <span data-coins>0</span></span><button class="round" id="muteBtn" aria-label="Sound on/off">🔊</button></div>
   <div class="logo"><h1>ICE <span>RUMBLE</span></h1></div>
   <div class="panel menu-card">
-    <div class="hello"><canvas id="menuPeng"></canvas><p id="statLine"></p></div>
+    <div class="hello"><canvas id="menuPeng"></canvas>
+      <div class="who"><div class="lvl"><b>Level <span id="lvlNum">1</span></b><span id="lvlText"></span></div><div class="lvlbar"><i id="lvlBar"></i></div><p id="statLine"></p></div></div>
     <button class="btn big" id="playBtn">▶ PLAY</button>
     <div class="arenas" id="arenas"></div>
     <div class="note" id="menuNote"></div>

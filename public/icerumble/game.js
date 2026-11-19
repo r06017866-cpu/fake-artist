@@ -20,32 +20,37 @@ const $ = (id) => document.getElementById(id);
 // Config
 // ======================================================================
 const ARENAS = [
-  { id: "floe", name: "Ice Floe", desc: "The edge keeps breaking off.", icon: "🧊", radius: 520, minR: 150, shrinkEvery: 8, shrinkBy: 40, unlockText: "" },
-  { id: "storm", name: "Snowstorm", desc: "Gusts of wind push everyone around.", icon: "🌨️", radius: 520, minR: 160, shrinkEvery: 10, shrinkBy: 38, wind: true, unlockText: "Finish top 3 on Ice Floe" },
-  { id: "glacier", name: "Glacier", desc: "Holes crack open in the ice.", icon: "🕳️", radius: 540, minR: 170, shrinkEvery: 11, shrinkBy: 36, holes: true, unlockText: "Finish top 3 in Snowstorm" },
+  { id: "floe", name: "Ice Floe", desc: "The edge keeps breaking off.", icon: "🧊", level: 1, radius: 520, minR: 150, shrinkEvery: 8, shrinkBy: 40 },
+  { id: "storm", name: "Snowstorm", desc: "Gusts of wind push everyone around.", icon: "🌨️", level: 3, radius: 520, minR: 160, shrinkEvery: 10, shrinkBy: 38, wind: true },
+  { id: "glacier", name: "Glacier", desc: "Holes crack open in the ice.", icon: "🕳️", level: 6, radius: 540, minR: 170, shrinkEvery: 11, shrinkBy: 36, holes: true },
+  { id: "spin", name: "Spinning Floe", desc: "The ice turns and flings you outward.", icon: "🌀", level: 10, radius: 520, minR: 170, shrinkEvery: 11, shrinkBy: 34, spin: true },
+  { id: "seals", name: "Seal Territory", desc: "Seals charge across the ice!", icon: "🦭", level: 14, radius: 540, minR: 170, shrinkEvery: 11, shrinkBy: 36, seals: true },
+  { id: "night", name: "Polar Night", desc: "Darkness. You only see what's close.", icon: "🌌", level: 19, radius: 520, minR: 160, shrinkEvery: 10, shrinkBy: 38, night: true },
+  { id: "drift", name: "Drifting Floes", desc: "The floes drift apart. Boost to jump!", icon: "🧩", level: 25, radius: 520, minR: 0, shrinkEvery: 12, shrinkBy: 0, drift: true },
 ];
 const UPGRADES = [
-  { id: "push", name: "Push Power", icon: "💥", desc: "Knock others farther", per: "+12% push" },
-  { id: "speed", name: "Speed", icon: "💨", desc: "Waddle faster", per: "+6% speed" },
-  { id: "boost", name: "Boost Recharge", icon: "⚡", desc: "Boost more often", per: "-10% cooldown" },
-  { id: "weight", name: "Weight", icon: "🏋️", desc: "Harder to push around", per: "+10% weight" },
+  { id: "push", name: "Push Power", icon: "💥", desc: "Knock others farther", per: "+6% push" },
+  { id: "speed", name: "Speed", icon: "💨", desc: "Waddle faster", per: "+3% speed" },
+  { id: "boost", name: "Boost Recharge", icon: "⚡", desc: "Boost more often", per: "-5% cooldown" },
+  { id: "weight", name: "Weight", icon: "🏋️", desc: "Harder to push around", per: "+5% weight" },
 ];
-const UPGRADE_MAX = 5;
-const UPGRADE_COST = [60, 140, 280, 480, 800];
+const UPGRADE_MAX = 10;
+const UPGRADE_COST = [40, 70, 110, 170, 250, 350, 480, 640, 840, 1080];
 const SKINS = [
   { id: "classic", name: "Classic", price: 0, body: "#1f2b45", belly: "#ffffff" },
-  { id: "beanie", name: "Cozy Beanie", price: 80, body: "#1f2b45", belly: "#ffffff", acc: "beanie", accColor: "#e8443a" },
-  { id: "scarf", name: "Scarf Season", price: 100, body: "#273657", belly: "#fffaf0", acc: "scarf", accColor: "#2bb673" },
-  { id: "cap", name: "Backwards Cap", price: 150, body: "#20263a", belly: "#ffffff", acc: "cap", accColor: "#2f7bf5" },
-  { id: "shades", name: "Too Cool", price: 200, body: "#141a2b", belly: "#f2f6ff", acc: "shades", accColor: "#111" },
-  { id: "pink", name: "Bubblegum", price: 250, body: "#e05a9c", belly: "#fff3f8", acc: "bow", accColor: "#ffd1e6" },
-  { id: "mint", name: "Mint Chip", price: 250, body: "#2aa98b", belly: "#f3fff9", acc: null },
-  { id: "chef", name: "Chef", price: 350, body: "#1f2b45", belly: "#ffffff", acc: "chef", accColor: "#ffffff" },
-  { id: "viking", name: "Viking", price: 450, body: "#5a3b22", belly: "#f6e8d6", acc: "viking", accColor: "#c9ccd3" },
-  { id: "headphones", name: "DJ Waddle", price: 500, body: "#2b2140", belly: "#ffffff", acc: "headphones", accColor: "#ff4d6d" },
-  { id: "ninja", name: "Ninja", price: 700, body: "#0f0f14", belly: "#2a2a35", acc: "ninja", accColor: "#e8443a", rare: true },
-  { id: "emperor", name: "Emperor", price: 900, body: "#22314f", belly: "#fff6d8", acc: "crown", accColor: "#ffc93c", rare: true },
-  { id: "gold", name: "Golden", price: 1500, body: "#d9a520", belly: "#fff1bf", acc: "tophat", accColor: "#1a1a1a", rare: true },
+  { id: "beanie", name: "Cozy Beanie", price: 150, body: "#1f2b45", belly: "#ffffff", acc: "beanie", accColor: "#e8443a" },
+  { id: "scarf", name: "Scarf Season", price: 200, body: "#273657", belly: "#fffaf0", acc: "scarf", accColor: "#2bb673" },
+  { id: "cap", name: "Backwards Cap", price: 300, body: "#20263a", belly: "#ffffff", acc: "cap", accColor: "#2f7bf5" },
+  { id: "shades", name: "Too Cool", price: 400, body: "#141a2b", belly: "#f2f6ff", acc: "shades", accColor: "#111" },
+  { id: "pink", name: "Bubblegum", price: 550, body: "#e05a9c", belly: "#fff3f8", acc: "bow", accColor: "#ffd1e6" },
+  { id: "mint", name: "Mint Chip", price: 550, body: "#2aa98b", belly: "#f3fff9", acc: null },
+  { id: "chef", name: "Chef", price: 750, body: "#1f2b45", belly: "#ffffff", acc: "chef", accColor: "#ffffff" },
+  { id: "headphones", name: "DJ Waddle", price: 1000, body: "#2b2140", belly: "#ffffff", acc: "headphones", accColor: "#ff4d6d" },
+  // achievement skins: can't be bought, only earned
+  { id: "viking", name: "Viking", ach: "Get 100 knockouts", test: () => save.kos >= 100, prog: () => `${Math.min(save.kos, 100)}/100`, body: "#5a3b22", belly: "#f6e8d6", acc: "viking", accColor: "#c9ccd3", rare: true },
+  { id: "ninja", name: "Ninja", ach: "Win a round without boosting", test: () => save.noBoostWin, body: "#0f0f14", belly: "#2a2a35", acc: "ninja", accColor: "#e8443a", rare: true },
+  { id: "emperor", name: "Emperor", ach: "Win in every arena", test: () => ARENAS.every((a) => (save.winsByArena[a.id] || 0) > 0), prog: () => `${ARENAS.filter((a) => (save.winsByArena[a.id] || 0) > 0).length}/${ARENAS.length}`, body: "#22314f", belly: "#fff6d8", acc: "crown", accColor: "#ffc93c", rare: true },
+  { id: "gold", name: "Golden", ach: "Reach level 25", test: () => levelInfo().level >= 25, prog: () => `Lv ${levelInfo().level}/25`, body: "#d9a520", belly: "#fff1bf", acc: "tophat", accColor: "#1a1a1a", rare: true },
 ];
 const BOT_NAMES = ["Waddles", "Flipper", "Nugget", "Frosty", "Pebble", "Snowball", "Biscuit", "Sir Wobble", "Iceberg", "Puddles", "Chilly", "Mochi", "Blizz", "Sprinkles", "Captain Slide", "Bubbles", "Penny", "Gus", "Marshmallow", "Tofu", "Pickles", "Squeak", "Kiwi", "Dumpling"];
 const BOT_COLORS = ["#1f2b45", "#2a3f66", "#3b2f55", "#1d4a4a", "#4a2b2b", "#2e3a2a", "#4b3a1d", "#263046", "#3a2148", "#173b5c"];
@@ -66,16 +71,39 @@ const P = {
 // ======================================================================
 const SAVE_KEY = "icerumble_save_v1";
 const DEFAULT_SAVE = { coins: 0, upgrades: { push: 0, speed: 0, boost: 0, weight: 0 }, owned: ["classic"], skin: "classic",
-  unlocked: ["floe"], arena: "floe", games: 0, wins: 0, kos: 0, muted: false, music: true };
+  unlocked: ["floe"], arena: "floe", games: 0, wins: 0, kos: 0, muted: false, music: true, xp: 0, winsByArena: {}, noBoostWin: false };
 let save = loadSave();
 function loadSave() {
   try {
     const s = JSON.parse(localStorage.getItem(SAVE_KEY) || "null");
-    if (s && typeof s === "object") return { ...DEFAULT_SAVE, ...s, upgrades: { ...DEFAULT_SAVE.upgrades, ...(s.upgrades || {}) } };
+    if (s && typeof s === "object") {
+      const m = { ...DEFAULT_SAVE, ...s, upgrades: { ...DEFAULT_SAVE.upgrades, ...(s.upgrades || {}) }, winsByArena: { ...(s.winsByArena || {}) } };
+      if (s.xp === undefined) m.xp = (s.games || 0) * 40; // older saves: a little head start
+      return m;
+    }
   } catch {}
   return JSON.parse(JSON.stringify(DEFAULT_SAVE));
 }
 function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch {} }
+
+// ---- Levels & unlocks ----
+const xpToNext = (L) => 250 + 40 * (L - 1);
+function levelInfo(xp = save.xp) {
+  let level = 1, rest = xp;
+  while (rest >= xpToNext(level) && level < 99) { rest -= xpToNext(level); level++; }
+  return { level, into: rest, need: xpToNext(level) };
+}
+function arenaIndex(id) { return ARENAS.findIndex((a) => a.id === id); }
+function arenaUnlocked(i) {
+  if (i <= 0) return true;
+  const a = ARENAS[i], prev = ARENAS[i - 1];
+  return levelInfo().level >= a.level && (save.winsByArena[prev.id] || 0) > 0;
+}
+function arenaLockText(i) {
+  const a = ARENAS[i], prev = ARENAS[i - 1];
+  const lvlOk = levelInfo().level >= a.level, winOk = (save.winsByArena[prev.id] || 0) > 0;
+  return `${lvlOk ? "✅" : "🔒"} Level ${a.level}<br>${winOk ? "✅" : "🔒"} Win ${prev.name}`;
+}
 
 // ======================================================================
 // Poki SDK (only active when the Poki SDK script is on the page)
@@ -267,12 +295,13 @@ function makePenguin(opts) {
 }
 function playerStats(p) {
   const u = save.upgrades;
-  p.push = P.pushBase * (1 + 0.12 * u.push);
-  p.speedMul = 1 + 0.06 * u.speed;
-  p.cdMul = 1 - 0.1 * u.boost;
-  p.mass = 1 + 0.1 * u.weight;
+  p.push = P.pushBase * (1 + 0.06 * u.push);
+  p.speedMul = 1 + 0.03 * u.speed;
+  p.cdMul = 1 - 0.05 * u.boost;
+  p.mass = 1 + 0.05 * u.weight;
 }
-function difficulty() { return clamp((save.wins * 2 + save.games) / 40, 0, 1); }
+/** Bots get better as you level up (and a bit in later arenas). */
+function difficulty(arenaId) { return clamp((levelInfo().level - 1) / 26 + arenaIndex(arenaId) * 0.015, 0, 1); }
 
 // ======================================================================
 // Round state
@@ -283,13 +312,23 @@ const particles = [];
 
 function newRound(arenaId, demo = false) {
   const arena = ARENAS.find((a) => a.id === arenaId) || ARENAS[0];
-  const d = demo ? 0.5 : difficulty();
+  const d = demo ? 0.5 : difficulty(arena.id);
   G = {
     arena, demo, R: arena.radius, shownR: arena.radius, targetR: arena.radius, time: 0, phase: demo ? "play" : "countdown", countdown: 3.2,
     shrinkT: arena.shrinkEvery, shrinkWarn: 0, penguins: [], holes: [], holeT: 5, wind: { phase: "idle", t: rand(5, 8), dir: 0, f: 0 },
     slowmo: 0, over: false, playerPlace: 0, d, ice: makeIceTexture(arena), kosBefore: save.kos, result: null,
     edge: [3, 4, 5, 7, 9].map((k) => ({ k, amp: rand(0.004, 0.009), p: rand(0, TAU) })), env: makeEnv(arena),
+    rot: 0, omega: 0, playerBoosted: false, floes: null, seal: null, meltWarn: 0,
   };
+  if (arena.drift) {
+    const off = rand(0, TAU);
+    G.floes = [{ ang: 0, d0: 0, r: 265 }, ...[0, 1, 2, 3].map((i) => ({ ang: off + (i / 4) * TAU, d0: 370, r: 205 }))].map((f, i) => ({
+      ...f, d: f.d0, x: Math.cos(f.ang) * f.d0, y: Math.sin(f.ang) * f.d0, dx: 0, dy: 0, phase: -Math.PI / 2 + rand(-0.5, 0.5), spin: rand(-0.04, 0.04), seed: rand(0, 100),
+      edge: [3, 5, 7].map((k) => ({ k, amp: rand(0.01, 0.025), p: rand(0, TAU) })), minR: i === 0 ? 95 : 80,
+    }));
+    G.R = G.shownR = 370 + 205 + 30;
+  }
+  if (arena.seals) G.seal = { state: "idle", t: rand(4, 6), x: 0, y: 0, vx: 0, vy: 0, r: 34, baseR: 34, mass: 14, push: 1.5, boosting: 0, squash: 0, alive: true, falling: 0, isSeal: true, dir: 0, travelled: 0, sx: 0, sy: 0, alpha: 0 };
   const names = [...BOT_NAMES].sort(() => Math.random() - 0.5);
   const n = BOTS_PER_ROUND + (demo ? 1 : 0);
   const total = n + (demo ? 0 : 1);
@@ -316,6 +355,10 @@ function newRound(arenaId, demo = false) {
       p.cdMul = lerp(1.15, 0.85, d);
     }
     p.x = Math.cos(a) * rr; p.y = Math.sin(a) * rr; p.face = a + Math.PI;
+    if (G.floes) { // two penguins per floe
+      const f = G.floes[i % G.floes.length], k = Math.floor(i / G.floes.length), aa = rand(0, TAU), rr2 = f.r * (k ? 0.5 : 0.15);
+      p.x = f.x + Math.cos(aa) * rr2; p.y = f.y + Math.sin(aa) * rr2; p.face = Math.atan2(-p.y, -p.x);
+    }
     G.penguins.push(p);
   }
   particles.length = 0;
@@ -332,6 +375,10 @@ const THEMES = {
   floe:    { water: ["#35cdf0", "#1497d6", "#0b6fb0"], top: ["#ffffff", "#e3f6ff", "#bfe7fb"], side: ["#7fd8f5", "#2f98cf"], line: "#1b5b8a", snow: "#ffffff", crack: "rgba(40,120,180,.45)" },
   storm:   { water: ["#7398d0", "#4a72ad", "#2c4f86"], top: ["#ffffff", "#f1f6fc", "#d6e2f0"], side: ["#b7cdea", "#6487b6"], line: "#2c4a75", snow: "#ffffff", crack: "rgba(70,100,150,.4)", snowfall: true },
   glacier: { water: ["#3fe0cf", "#14aebf", "#0a7f98"], top: ["#f6fffe", "#cff5f6", "#9fe2ec"], side: ["#64d8e6", "#1d93b3"], line: "#145f78", snow: "#ffffff", crack: "rgba(15,110,150,.55)" },
+  spin:    { water: ["#7d8cff", "#5466e0", "#3443a8"], top: ["#ffffff", "#eef0ff", "#cfd6ff"], side: ["#aab6ff", "#5d6bd8"], line: "#28327e", snow: "#ffffff", crack: "rgba(70,80,170,.4)" },
+  seals:   { water: ["#2fb3d6", "#18789f", "#0d4f78"], top: ["#ffffff", "#e8f5fb", "#c2e2f0"], side: ["#86cde6", "#2f8db8"], line: "#174f73", snow: "#ffffff", crack: "rgba(30,100,140,.45)" },
+  night:   { water: ["#1d3f6e", "#112a4f", "#081a33"], top: ["#eef5ff", "#cfe0f7", "#a6bfe2"], side: ["#6386bf", "#2f4a80"], line: "#0f2347", snow: "#ffffff", crack: "rgba(40,70,120,.5)", night: true },
+  drift:   { water: ["#4fd8f7", "#1ea6dc", "#0c73b6"], top: ["#ffffff", "#e3f6ff", "#bfe7fb"], side: ["#7fd8f5", "#2f98cf"], line: "#1b5b8a", snow: "#ffffff", crack: "rgba(40,120,180,.45)" },
 };
 const theme = () => THEMES[G ? G.arena.id : "floe"];
 
@@ -380,12 +427,25 @@ function makeIceTexture(arena) {
 }
 
 /** Wobbly floe outline: radius multiplier for an angle (physics and drawing use the same shape). */
-function edgeMul(a) { let m = 1; for (const h of G.edge) m += h.amp * Math.sin(h.k * a + h.p); return m; }
+function edgeMul(a) { let m = 1; for (const h of G.edge) m += h.amp * Math.sin(h.k * (a - G.rot) + h.p); return m; }
+function floeMul(f, a) { let m = 1; for (const h of f.edge) m += h.amp * Math.sin(h.k * (a - f.spin * G.time) + h.p); return m; }
+/** Where is (x,y) relative to the ice it's on? d = distance to that ice's centre, er = edge radius in that direction. */
+function surfaceInfo(x, y) {
+  if (G.floes) {
+    let best = null, bestRel = 1e9;
+    for (const f of G.floes) {
+      const dx = x - f.x, dy = y - f.y, d = len(dx, dy), er = f.r * floeMul(f, Math.atan2(dy, dx)), rel = d / er;
+      if (rel < bestRel) { bestRel = rel; best = { d, er, cx: f.x, cy: f.y, floe: f }; }
+    }
+    return best;
+  }
+  return { d: len(x, y), er: edgeR(Math.atan2(y, x)), cx: 0, cy: 0, floe: null };
+}
 const edgeR = (a, R = G.R) => R * edgeMul(a);
 
 /** Background: drifting floes, icebergs, fish (generated per round). */
 function makeEnv(arena) {
-  const R = arena.radius, env = { floes: [], bergs: [], fish: [], fishT: 1.5, flakes: [] };
+  const R = arena.drift ? 640 : arena.radius, env = { floes: [], bergs: [], fish: [], fishT: 1.5, flakes: [] };
   for (let i = 0; i < 14; i++) {
     const a = rand(0, TAU), d = rand(R + 120, R + 700);
     env.floes.push({ x: Math.cos(a) * d, y: Math.sin(a) * d, r: rand(28, 85), seed: rand(0, 100), ph: rand(0, TAU), rot: rand(0, TAU), drift: rand(-6, 6), snow: Math.random() < 0.6, pengs: Math.random() < 0.25 ? randi(1, 2) : 0 });
@@ -425,6 +485,8 @@ function step(dt) {
       if (p.falling > 0.7) p.alive = false;
       continue;
     }
+    // drifting floes carry whoever stands on them
+    if (G.floes) { const si = surfaceInfo(p.x, p.y); if (si.d <= si.er) { p.x += si.floe.dx; p.y += si.floe.dy; } }
     let ix = 0, iy = 0, wantBoost = false;
     if (p.isPlayer && !G.demo) {
       [ix, iy] = playerInputVector(p);
@@ -444,6 +506,12 @@ function step(dt) {
     }
     const damp = im > 0.05 ? P.dampMove : P.dampGlide;
     const f = Math.exp(-damp * dt); p.vx *= f; p.vy *= f;
+    // spinning floe: the ice drags you around and flings you outward
+    if (G.arena.spin) {
+      const d = len(p.x, p.y) || 1, tx = -p.y / d, ty = p.x / d, vt = p.vx * tx + p.vy * ty, k = 1.1 * dt;
+      p.vx += tx * (G.omega * d - vt) * k; p.vy += ty * (G.omega * d - vt) * k;
+      const out = G.omega * G.omega * d * 0.85 * dt; p.vx += (p.x / d) * out; p.vy += (p.y / d) * out;
+    }
     // wind
     if (G.wind.phase === "blow") { p.vx += Math.cos(G.wind.dir) * G.wind.f * dt / p.mass; p.vy += Math.sin(G.wind.dir) * G.wind.f * dt / p.mass; }
     // boost
@@ -451,7 +519,8 @@ function step(dt) {
     if (wantBoost && p.boostCd <= 0) {
       const bx = im > 0.05 ? ix / im : Math.cos(p.face), by = im > 0.05 ? iy / im : Math.sin(p.face);
       p.vx += bx * P.boostImpulse; p.vy += by * P.boostImpulse; p.face = Math.atan2(by, bx);
-      p.boosting = P.boostTime; p.boostCd = P.boostCd * p.cdMul;
+      p.boosting = G.floes ? 0.5 : P.boostTime; p.boostCd = P.boostCd * p.cdMul; // on drifting floes a boost is a longer jump
+      if (p.isPlayer) G.playerBoosted = true;
       if (p.isPlayer || onScreen(p)) Sound.boost();
       for (let i = 0; i < 8; i++) spawn({ x: p.x - bx * p.r, y: p.y - by * p.r, vx: -bx * rand(60, 160) + rand(-40, 40), vy: -by * rand(60, 160) + rand(-40, 40), life: 0.45, size: rand(3, 6), color: "#ffffff", type: "snow" });
     }
@@ -463,18 +532,27 @@ function step(dt) {
   // --- collisions ---
   const list = G.penguins.filter((p) => p.alive && !p.falling);
   for (let i = 0; i < list.length; i++) for (let j = i + 1; j < list.length; j++) collide(list[i], list[j]);
+  // the charging seal is unstoppable
+  const S = G.seal;
+  if (S && S.state === "charge") for (const p of list) {
+    if (len(p.x - S.x, p.y - S.y) >= p.r + S.r) continue;
+    const vx = S.vx, vy = S.vy, x = S.x, y = S.y;
+    collide(S, p); S.vx = vx; S.vy = vy; S.x = x; S.y = y;
+    p.vx += vx * 0.35; p.vy += vy * 0.35;
+  }
 
   // --- falling off ---
   for (const p of list) {
-    const dc = len(p.x, p.y);
-    let out = dc > edgeR(Math.atan2(p.y, p.x)) + p.r * 0.15;
+    const si = surfaceInfo(p.x, p.y);
+    let out = si.d > si.er + p.r * 0.15;
+    if (G.floes && p.boosting > 0) out = false; // boosting = jumping between floes
     for (const h of G.holes) if (h.open && len(p.x - h.x, p.y - h.y) < h.r - p.r * 0.35) out = true;
     if (out) fall(p);
   }
   // --- end of round ---
   if (!G.over) {
     const left = aliveList();
-    if (G.demo) { if (left.length <= 1) { G.over = true; setTimeout(() => { if (state === "menu") newRound(pick(ARENAS).id, true); }, 1500); } }
+    if (G.demo) { if (left.length <= 1) { G.over = true; setTimeout(() => { if (state === "menu") newRound(pick(ARENAS.filter((a, i) => arenaUnlocked(i))).id, true); }, 1500); } }
     else if (pl && (!pl.alive || pl.falling)) endRound(false);
     else if (left.length === 1 && left[0].isPlayer) endRound(true);
   }
@@ -495,7 +573,8 @@ function collide(a, b) {
   const rv = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
   if (rv >= 0) return;
   const j = (-(1 + P.restitution) * rv) / (1 / ma + 1 / mb);
-  const pa = a.push * (a.boosting ? 1.45 : 1), pb = b.push * (b.boosting ? 1.45 : 1);
+  const k = G.floes ? 0.82 : 1; // small floes: softer bumps, otherwise rounds are over in seconds
+  const pa = a.push * (a.boosting ? 1.45 : 1) * k, pb = b.push * (b.boosting ? 1.45 : 1) * k;
   b.vx += (j / mb) * nx * pa; b.vy += (j / mb) * ny * pa;
   a.vx -= (j / ma) * nx * pb; a.vy -= (j / ma) * ny * pb;
   // who hit whom: whoever was moving into the other gets the credit
@@ -514,8 +593,10 @@ function collide(a, b) {
 }
 
 function fall(p) {
+  if (window.__irDebug) { const si = surfaceInfo(p.x, p.y); window.__irDebug.push({ t: +G.time.toFixed(2), rel: +(si.d / si.er).toFixed(2), floe: G.floes ? G.floes.indexOf(si.floe) : -1, v: Math.round(len(p.vx, p.vy)), hit: G.time - p.lastHitAt < 1 }); }
   p.falling = 0.0001; p.fallVX = p.vx * 0.5; p.fallVY = p.vy * 0.5;
-  const killer = p.lastHitBy && G.time - p.lastHitAt < 4 && p.lastHitBy.alive && !p.lastHitBy.falling ? p.lastHitBy : null;
+  let killer = p.lastHitBy && G.time - p.lastHitAt < 4 && p.lastHitBy.alive && !p.lastHitBy.falling ? p.lastHitBy : null;
+  if (killer && killer.isSeal) { killer = null; if (p.isPlayer || onScreen(p)) spawn({ x: p.x, y: p.y - 30, vx: 0, vy: -40, life: 1, size: 0, color: "#ffffff", type: "text", text: "🦭 SEAL!" }); }
   p.place = aliveList().length + 1;
   for (let k = 0; k < 18; k++) spawn({ x: p.x, y: p.y, vx: rand(-120, 120), vy: rand(-120, 120), life: rand(0.5, 0.9), size: rand(3, 7), color: pick(["#ffffff", "#bfe8ff", "#7cc7ef"]), type: "splash" });
   spawn({ x: p.x, y: p.y, vx: 0, vy: 0, life: 0.8, size: p.r, color: "#ffffff", type: "ring" });
@@ -541,8 +622,14 @@ function arenaEvents(dt) {
   const A = G.arena;
   // stalemate breaker: after 75 s shrink faster
   const speedUp = G.time > 75 ? 1.8 : 1;
+  // --- spinning ---
+  if (A.spin) { G.omega = Math.min(0.62, 0.3 + G.time * 0.004); G.rot += G.omega * dt; }
+  // --- drifting floes ---
+  if (G.floes) driftEvents(dt, speedUp);
+  // --- seals ---
+  if (G.seal) sealEvents(dt);
   // --- shrinking edge ---
-  if (G.R > A.minR + 1) {
+  if (!A.drift && G.R > A.minR + 1) {
     G.shrinkT -= dt * speedUp;
     if (G.shrinkT <= 2.2 && !G.shrinkWarn) {
       G.shrinkWarn = 1; G.targetR = Math.max(A.minR, G.R - A.shrinkBy);
@@ -595,6 +682,63 @@ function arenaEvents(dt) {
   }
 }
 
+function driftEvents(dt, speedUp) {
+  let ext = 0;
+  for (const f of G.floes) {
+    const ox = f.x, oy = f.y;
+    if (f.d0 > 0) {
+      f.d = f.d0 + 45 * Math.sin(G.time * 0.3 + f.phase) + Math.min(55, G.time * 0.5);
+      f.ang += dt * 0.05;
+    }
+    f.x = Math.cos(f.ang) * f.d; f.y = Math.sin(f.ang) * f.d;
+    f.dx = f.x - ox; f.dy = f.y - oy;
+    ext = Math.max(ext, f.d + f.r);
+  }
+  G.R = ext + 30;
+  // melting: every few seconds all floes get smaller
+  G.shrinkT -= dt * speedUp;
+  if (G.shrinkT <= 2 && !G.meltWarn) { G.meltWarn = 1; if (!G.demo) { Sound.crack(); warn("The floes are melting!", 1800); } }
+  if (G.shrinkT <= 0) {
+    G.shrinkT = G.arena.shrinkEvery; G.meltWarn = 0;
+    if (!G.demo) Sound.breakIce();
+    for (const f of G.floes) {
+      const nr = Math.max(f.minR, f.r - 13);
+      for (let k = 0; k < 6 && nr < f.r; k++) { const a = rand(0, TAU); spawn({ x: f.x + Math.cos(a) * f.r, y: f.y + Math.sin(a) * f.r, vx: Math.cos(a) * 40, vy: Math.sin(a) * 40, life: rand(1, 1.8), size: rand(8, 16), color: "#dff4ff", type: "chunk", rot: rand(0, TAU) }); }
+      f.r = nr;
+    }
+  }
+}
+
+function sealEvents(dt) {
+  const S = G.seal;
+  S.t -= dt;
+  if (S.state === "idle" && S.t <= 0) {
+    const targets = aliveList();
+    if (!targets.length) return;
+    const tg = pick(targets);
+    const a = Math.atan2(tg.y, tg.x) + rand(-0.5, 0.5), er = edgeR(a) + 45;
+    S.sx = Math.cos(a) * er; S.sy = Math.sin(a) * er;
+    S.dir = Math.atan2(tg.y - S.sy, tg.x - S.sx) + rand(-0.12, 0.12);
+    S.x = S.sx; S.y = S.sy; S.state = "warn"; S.t = G.time > 60 ? 1.25 : 1.55; S.alpha = 0;
+    if (!G.demo) Sound.tone(110, 0.5, { type: "sine", vol: 0.2, slide: 1.4 });
+  } else if (S.state === "warn") {
+    if (Math.random() < dt * 25) spawn({ x: S.sx + rand(-20, 20), y: S.sy + rand(-20, 20), vx: 0, vy: -20, life: 0.5, size: rand(3, 7), color: "rgba(255,255,255,.9)", type: "ring" });
+    if (S.t <= 0) {
+      S.state = "charge"; S.travelled = 0; S.alpha = 1;
+      S.vx = Math.cos(S.dir) * 560; S.vy = Math.sin(S.dir) * 560;
+      if (!G.demo) Sound.splash();
+      spawnRipple(S.x, S.y);
+    }
+  } else if (S.state === "charge") {
+    S.x += S.vx * dt; S.y += S.vy * dt; S.travelled += 560 * dt;
+    S.squash = (S.squash + dt * 6) % TAU;
+    if (S.travelled > G.R * 2 + 90) { S.state = "dive"; S.t = 0.5; spawnRipple(S.x, S.y); }
+  } else if (S.state === "dive") {
+    S.x += S.vx * dt * 0.4; S.y += S.vy * dt * 0.4; S.alpha = Math.max(0, S.t / 0.5);
+    if (S.t <= 0) { S.state = "idle"; S.t = rand(3.2, 5.5) * (G.time > 60 ? 0.7 : 1); }
+  }
+}
+
 // ======================================================================
 // Bots
 // ======================================================================
@@ -611,20 +755,22 @@ function updateBots(dt, frozen) {
 }
 
 function think(p, b) {
-  const others = aliveList().filter((o) => o !== p);
-  const dCenter = len(p.x, p.y), rel = dCenter / G.R;
+  const night = G.arena.night;
+  const others = aliveList().filter((o) => o !== p && (!night || len(o.x - p.x, o.y - p.y) < 300));
+  const si = surfaceInfo(p.x, p.y), rel = si.d / si.er;
+  let inX = si.cx - p.x, inY = si.cy - p.y; const inL = len(inX, inY) || 1; inX /= inL; inY /= inL; // towards the middle of my ice
   // --- choose target ---
-  if (!b.target || !b.target.alive || b.target.falling || Math.random() < 0.08) {
+  if (!b.target || !b.target.alive || b.target.falling || !others.includes(b.target) || Math.random() < 0.08) {
     let best = null, bestScore = -1e9;
     for (const o of others) {
-      const dist = len(o.x - p.x, o.y - p.y), orel = len(o.x, o.y) / G.R;
-      let s = -dist;
-      if (b.pers === "opportunist") s += orel * 400 - (o.kos * 30);
-      if (b.pers === "hunter" && o.isPlayer) s += 350;
-      if (b.pers === "aggressive") s += o.kos * 60;
-      if (b.pers === "cautious") s += orel * 250;
-      if (b.pers === "chaotic") s += rand(-300, 300);
-      if (s > bestScore) { bestScore = s; best = o; }
+      const dist = len(o.x - p.x, o.y - p.y), os = surfaceInfo(o.x, o.y), orel = os.d / os.er;
+      let sc = -dist;
+      if (b.pers === "opportunist") sc += orel * 400 - (o.kos * 30);
+      if (b.pers === "hunter" && o.isPlayer) sc += 350;
+      if (b.pers === "aggressive") sc += o.kos * 60;
+      if (b.pers === "cautious") sc += orel * 250;
+      if (b.pers === "chaotic") sc += rand(-300, 300);
+      if (sc > bestScore) { bestScore = sc; best = o; }
     }
     b.target = best;
   }
@@ -632,41 +778,54 @@ function think(p, b) {
   const t = b.target;
   // --- attack / position ---
   if (t) {
+    const ts = surfaceInfo(t.x, t.y);
     const tx = t.x, ty = t.y, tdist = len(tx - p.x, ty - p.y);
-    const tout = len(tx, ty) || 1, oux = tx / tout, ouy = ty / tout; // target's outward direction
-    const wantsToAttack = b.pers !== "cautious" || len(tx, ty) / G.R > 0.55 || rel < 0.35;
+    let oux = tx - ts.cx, ouy = ty - ts.cy; const ol = len(oux, ouy) || 1; oux /= ol; ouy /= ol; // target's outward direction
+    const wantsToAttack = b.pers !== "cautious" || ts.d / ts.er > 0.55 || rel < 0.35;
     if (wantsToAttack) {
-      // approach from the centre side so the push sends the target outward
+      // approach from the inner side so the push sends the target outward
       const behindX = tx - oux * (p.r + t.r + 30), behindY = ty - ouy * (p.r + t.r + 30);
-      const selfOutside = dCenter > tout + 10;
+      const selfOutside = (p.x - ts.cx) * oux + (p.y - ts.cy) * ouy > ts.d + 10;
       const aimX = selfOutside && tdist > 50 ? behindX : tx + t.vx * 0.15, aimY = selfOutside && tdist > 50 ? behindY : ty + t.vy * 0.15;
       const dx = aimX - p.x, dy = aimY - p.y, dl = len(dx, dy) || 1;
       ax += dx / dl; ay += dy / dl;
-      // boost if lined up and close
-      const vel = len(p.vx, p.vy), aimAng = Math.atan2(ty - p.y, tx - p.x);
+      const aimAng = Math.atan2(ty - p.y, tx - p.x);
       const aligned = Math.abs(angDiff(p.face, aimAng)) < 0.45;
       const boostChance = { aggressive: 0.75, hunter: 0.6, opportunist: 0.55, cautious: 0.4, chaotic: 0.45 }[b.pers];
-      if (tdist < 150 && aligned && p.boostCd <= 0 && !selfOutside && Math.random() < boostChance) b.boostWant = true;
-      if (vel < 10 && Math.random() < 0.02) b.boostWant = true;
-    } else {
-      // cautious: hang around the middle
-      ax += -p.x / (dCenter || 1) * 0.8; ay += -p.y / (dCenter || 1) * 0.8;
-    }
+      if (tdist < 150 && aligned && p.boostCd <= 0 && !selfOutside && si.floe === ts.floe && Math.random() < boostChance) b.boostWant = true;
+      if (len(p.vx, p.vy) < 10 && Math.random() < 0.02 && !G.floes) b.boostWant = true;
+    } else { ax += inX * 0.8; ay += inY * 0.8; }
+  } else { // nobody in sight (polar night): wander towards the middle
+    b.wander += rand(-0.6, 0.6); ax += inX * 0.5 + Math.cos(b.wander) * 0.4; ay += inY * 0.5 + Math.sin(b.wander) * 0.4;
   }
-  if (b.pers === "chaotic") { b.wander += rand(-1, 1); ax += Math.cos(b.wander) * 0.6; ay += Math.sin(b.wander) * 0.6; if (Math.random() < 0.05 && p.boostCd <= 0) b.boostWant = true; }
+  if (b.pers === "chaotic") { b.wander += rand(-1, 1); ax += Math.cos(b.wander) * 0.6; ay += Math.sin(b.wander) * 0.6; if (Math.random() < 0.05 && p.boostCd <= 0 && !G.floes) b.boostWant = true; }
   // --- edge safety ---
-  const edgeThresh = b.pers === "cautious" ? b.edge - 0.08 : b.edge;
+  const edgeThresh = (b.pers === "cautious" ? b.edge - 0.08 : b.edge) - (G.arena.spin ? 0.1 : 0) - (G.floes ? 0.08 : 0);
   if (rel > edgeThresh) {
     const k = (rel - edgeThresh) / (1 - edgeThresh) * 3.2;
-    ax -= (p.x / dCenter) * k; ay -= (p.y / dCenter) * k;
-    // emergency boost inward when sliding out fast
-    const outV = (p.vx * p.x + p.vy * p.y) / dCenter;
-    if (rel > 0.88 && outV > 90 && p.boostCd <= 0 && Math.random() < 1 - b.noise) { b.boostWant = true; ax = -p.x; ay = -p.y; }
+    ax += inX * k; ay += inY * k;
+    const outV = -(p.vx * inX + p.vy * inY);
+    if (rel > 0.88 && outV > 90 && p.boostCd <= 0 && Math.random() < 1 - b.noise) { b.boostWant = true; ax = inX; ay = inY; }
+  }
+  // --- drifting floes: head for the big middle floe, jump over when the gap is small ---
+  if (G.floes && si.floe !== G.floes[0]) {
+    const c = G.floes[0], dx = c.x - p.x, dy = c.y - p.y, dl = len(dx, dy) || 1;
+    const f = si.floe, apart = len(f.x - c.x, f.y - c.y) - f.r - c.r; // > 0: my floe is separated from the middle one
+    if (f.r < 115 || apart > 0) { ax += (dx / dl) * 0.3; ay += (dy / dl) * 0.3; } // small or drifting away: head home
+    const toEdge = dl - c.r; // distance from me to the middle floe's edge
+    if (apart > 0 && toEdge < 80 && p.boostCd <= 0 && Math.random() < 0.3 * (1 - b.noise)) { b.boostWant = true; ax = dx / dl; ay = dy / dl; }
   }
   // --- holes ---
   for (const h of G.holes) {
     const hx = p.x - h.x, hy = p.y - h.y, hd = len(hx, hy) || 1, danger = h.r + p.r + 55;
     if (hd < danger) { const k = (danger - hd) / danger * 3; ax += (hx / hd) * k; ay += (hy / hd) * k; }
+  }
+  // --- seal: get out of its path ---
+  const S = G.seal;
+  if (S && (S.state === "warn" || S.state === "charge") && Math.random() > b.noise * 0.8) {
+    const dx = Math.cos(S.dir), dy = Math.sin(S.dir), rx = p.x - S.x, ry = p.y - S.y;
+    const along = rx * dx + ry * dy, perp = -rx * dy + ry * dx;
+    if (along > -40 && Math.abs(perp) < 90) { const sgn = perp >= 0 ? 1 : -1; ax += -dy * sgn * 2.2; ay += dx * sgn * 2.2; }
   }
   // --- wind: lean into it ---
   if (G.wind.phase !== "idle" && Math.random() > b.noise) { ax -= Math.cos(G.wind.dir) * 0.9; ay -= Math.sin(G.wind.dir) * 0.9; }
@@ -723,7 +882,16 @@ function render(dt) {
   drawEnvironment(T, dt);
   // floating chunks behind the ice
   for (const q of particles) if (q.type === "chunk") drawChunk(q);
-  drawIceSlab(T);
+  if (G.floes) {
+    for (const f of [...G.floes].sort((p, q) => p.y - q.y)) drawSlab(T, f.x, f.y, f.r, (a) => floeMul(f, a), f.spin * G.time, 200);
+    if (G.meltWarn) {
+      const blink = 0.4 + 0.5 * Math.abs(Math.sin(G.time * 12));
+      ctx.save(); ctx.setLineDash([10, 8]); ctx.strokeStyle = `rgba(230,40,40,${blink})`; ctx.lineWidth = 3;
+      for (const f of G.floes) { slabPath(f.x, f.y, Math.max(f.minR, f.r - 13), 0, (a) => floeMul(f, a)); ctx.stroke(); }
+      ctx.restore();
+    }
+  } else drawIceSlab(T);
+  if (G.arena.spin) drawSpinMarks(T);
   // holes
   for (const h of G.holes) drawHole(h, T);
   // shrink warning: red dashed outline of the new edge
@@ -744,7 +912,9 @@ function render(dt) {
   // penguins sorted by y
   const list = G.penguins.filter((p) => p.alive).sort((a, b) => a.y - b.y);
   for (const p of list) drawPenguin(p);
-  for (const p of list) drawTag(p);
+  if (G.seal) drawSeal(G.seal);
+  if (theme().night) drawNight();
+  for (const p of list) if (!theme().night || p.isPlayer) drawTag(p);
   for (const q of particles) if (q.type === "snow" || q.type === "spark" || q.type === "text") drawParticle(q);
   if (theme().snowfall) { ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); drawSnowfall(dt); ctx.restore(); }
   // joystick
@@ -757,51 +927,144 @@ function render(dt) {
 }
 
 /** Path of the floe outline at radius R (world), shifted down by `drop` screen px. */
-function edgePath(R, drop, append = false) {
-  const [cx, cy] = toScreen(0, 0);
+/** Outline of an ice slab centred at (wx, wy) with radius R, shifted down by `drop` screen px. */
+function slabPath(wx, wy, R, drop, mul, append = false) {
+  const [cx, cy] = toScreen(wx, wy);
   if (!append) ctx.beginPath();
   const n = 72;
   for (let i = 0; i <= n; i++) {
-    const a = (i / n) * TAU, r = edgeR(a, R) * cam.scale;
+    const a = (i / n) * TAU, r = R * mul(a) * cam.scale;
     const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r + drop;
     i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
   }
   ctx.closePath();
 }
+function edgePath(R, drop, append = false) { slabPath(0, 0, R, drop, edgeMul, append); }
 
-function drawIceSlab(T) {
-  const [cx, cy] = toScreen(0, 0), R = G.shownR * cam.scale;
+function drawIceSlab(T) { drawSlab(T, 0, 0, G.shownR, edgeMul, G.rot, G.arena.radius); }
+
+function drawSlab(T, wx, wy, Rw, mul, texRot, texRadius) {
+  const [cx, cy] = toScreen(wx, wy), R = Rw * cam.scale;
   const thick = Math.max(8, 26 * cam.scale);
+  const path = (scale, drop) => slabPath(wx, wy, Rw * scale, drop, mul);
   // shadow in the water
-  ctx.fillStyle = "rgba(5,40,80,.28)"; edgePath(G.shownR * 1.02, thick + 10 * cam.scale); ctx.fill();
+  ctx.fillStyle = "rgba(5,40,80,.28)"; path(1.02, thick + 10 * cam.scale); ctx.fill();
   // foam ring at the waterline
   ctx.save(); ctx.setLineDash([14 * cam.scale + 4, 10 * cam.scale + 3]); ctx.lineDashOffset = -waterT * 18;
-  ctx.strokeStyle = "rgba(255,255,255,.85)"; ctx.lineWidth = Math.max(4, 12 * cam.scale); edgePath(G.shownR * 1.015, thick); ctx.stroke(); ctx.restore();
+  ctx.strokeStyle = "rgba(255,255,255,.85)"; ctx.lineWidth = Math.max(4, 12 * cam.scale); path(1.015, thick); ctx.stroke(); ctx.restore();
   // side wall
   const sg = ctx.createLinearGradient(0, cy - R, 0, cy + R + thick);
   sg.addColorStop(0, T.side[0]); sg.addColorStop(1, T.side[1]);
-  ctx.fillStyle = sg; edgePath(G.shownR, thick); ctx.fill();
+  ctx.fillStyle = sg; path(1, thick); ctx.fill();
   ctx.strokeStyle = T.line; ctx.lineWidth = Math.max(2, 3.5 * cam.scale); ctx.stroke();
-  // vertical stripes on the side for a chunky ice look
-  ctx.save(); edgePath(G.shownR, thick); ctx.clip();
+  // vertical stripes on the visible (lower) side
+  ctx.save(); path(1, thick); ctx.clip();
   ctx.strokeStyle = "rgba(255,255,255,.35)"; ctx.lineWidth = Math.max(1.5, 3 * cam.scale);
-  for (let i = 0; i < 28; i++) {
-    const a = (i / 28) * Math.PI + 0.05, r = edgeR(a) * cam.scale; // lower half only (visible side)
+  const stripes = Math.max(8, Math.round(28 * Rw / 520));
+  for (let i = 0; i < stripes; i++) {
+    const a = (i / stripes) * Math.PI + 0.05, r = Rw * mul(a) * cam.scale;
     const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;
     ctx.beginPath(); ctx.moveTo(x, y + thick * 0.15); ctx.lineTo(x, y + thick * 0.75); ctx.stroke();
   }
   ctx.restore();
-  // top surface
-  ctx.save(); edgePath(G.shownR, 0); ctx.clip();
-  const texR = G.arena.radius * 1.06 * cam.scale;
-  ctx.drawImage(G.ice, cx - texR, cy - texR, texR * 2, texR * 2);
-  // soft rim highlight
+  // top surface (texture turns with the ice)
+  ctx.save(); path(1, 0); ctx.clip();
+  const texR = texRadius * 1.06 * cam.scale;
+  ctx.translate(cx, cy); ctx.rotate(texRot);
+  ctx.drawImage(G.ice, -texR, -texR, texR * 2, texR * 2);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.restore();
+  ctx.save(); path(1, 0); ctx.clip();
   const eg = ctx.createRadialGradient(cx, cy, R * 0.82, cx, cy, R * 1.05);
   eg.addColorStop(0, "rgba(255,255,255,0)"); eg.addColorStop(1, "rgba(255,255,255,.55)");
   ctx.fillStyle = eg; ctx.fillRect(cx - R * 1.1, cy - R * 1.1, R * 2.2, R * 2.2);
   ctx.restore();
-  ctx.strokeStyle = T.line; ctx.lineWidth = Math.max(2.5, 4 * cam.scale); edgePath(G.shownR, 0); ctx.stroke();
-  ctx.strokeStyle = "rgba(255,255,255,.9)"; ctx.lineWidth = Math.max(1, 2 * cam.scale); edgePath(G.shownR * 0.985, 0); ctx.stroke();
+  ctx.strokeStyle = T.line; ctx.lineWidth = Math.max(2.5, 4 * cam.scale); path(1, 0); ctx.stroke();
+  ctx.strokeStyle = "rgba(255,255,255,.9)"; ctx.lineWidth = Math.max(1, 2 * cam.scale); path(0.985, 0); ctx.stroke();
+}
+
+/** Spinning floe: curved arrows painted on the ice show the direction. */
+function drawSpinMarks(T) {
+  const [cx, cy] = toScreen(0, 0);
+  ctx.save(); ctx.strokeStyle = "rgba(90,105,210,.28)"; ctx.fillStyle = "rgba(90,105,210,.28)"; ctx.lineWidth = Math.max(3, 9 * cam.scale); ctx.lineCap = "round";
+  for (let i = 0; i < 3; i++) {
+    const a0 = G.rot + (i / 3) * TAU, r = G.shownR * 0.55 * cam.scale;
+    ctx.beginPath(); ctx.arc(cx, cy, r, a0, a0 + 1.3); ctx.stroke();
+    const ex = cx + Math.cos(a0 + 1.3) * r, ey = cy + Math.sin(a0 + 1.3) * r, ta = a0 + 1.3 + Math.PI / 2, s = Math.max(8, 22 * cam.scale);
+    ctx.beginPath(); ctx.moveTo(ex + Math.cos(ta) * s, ey + Math.sin(ta) * s); ctx.lineTo(ex + Math.cos(ta + 2.4) * s, ey + Math.sin(ta + 2.4) * s); ctx.lineTo(ex + Math.cos(ta - 2.4) * s, ey + Math.sin(ta - 2.4) * s); ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
+}
+
+/** The seal: warning (bubbles + dashed path), charge, dive. */
+function drawSeal(S) {
+  if (S.state === "idle") return;
+  const T = theme();
+  if (S.state === "warn") {
+    const [x0, y0] = toScreen(S.sx, S.sy), L = (G.R * 2 + 90) * cam.scale;
+    const blink = 0.45 + 0.45 * Math.abs(Math.sin(G.time * 10));
+    ctx.save(); ctx.setLineDash([16, 12]); ctx.lineDashOffset = -G.time * 60; ctx.strokeStyle = `rgba(230,40,40,${blink})`; ctx.lineWidth = Math.max(4, 10 * cam.scale);
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0 + Math.cos(S.dir) * L, y0 + Math.sin(S.dir) * L); ctx.stroke(); ctx.restore();
+    ctx.fillStyle = `rgba(255,255,255,${blink})`; ctx.font = `900 ${Math.max(16, 26 * cam.scale)}px ${FONT}`; ctx.textAlign = "center"; ctx.fillText("!", x0, y0 + 8);
+    return;
+  }
+  const [x, y] = toScreen(S.x, S.y), r = S.r * cam.scale;
+  ctx.save(); ctx.globalAlpha = S.alpha; ctx.translate(x, y); ctx.rotate(S.dir);
+  // wake
+  ctx.fillStyle = "rgba(255,255,255,.6)"; ctx.beginPath(); ctx.ellipse(-r * 1.6, 0, r * 0.9, r * 0.5, 0, 0, TAU); ctx.fill();
+  const wob = Math.sin(S.squash) * 0.3;
+  ctx.fillStyle = "#6f7f8f"; ctx.strokeStyle = T.line; ctx.lineWidth = Math.max(2, 3 * cam.scale);
+  // tail flippers
+  ctx.beginPath(); ctx.moveTo(-r * 1.2, 0); ctx.lineTo(-r * 1.75, -r * 0.5 + wob * r); ctx.lineTo(-r * 1.6, 0); ctx.lineTo(-r * 1.75, r * 0.5 + wob * r); ctx.closePath(); ctx.fill(); ctx.stroke();
+  // front flippers
+  for (const sg of [-1, 1]) { ctx.beginPath(); ctx.ellipse(r * 0.2, sg * r * 0.75, r * 0.45, r * 0.18, sg * (0.6 + wob), 0, TAU); ctx.fill(); ctx.stroke(); }
+  // body + head
+  ctx.beginPath(); ctx.ellipse(-r * 0.2, 0, r * 1.25, r * 0.78, 0, 0, TAU); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = "#8696a6"; ctx.beginPath(); ctx.arc(r * 0.85, 0, r * 0.55, 0, TAU); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = "rgba(255,255,255,.25)"; ctx.beginPath(); ctx.ellipse(-r * 0.4, -r * 0.3, r * 0.6, r * 0.2, 0, 0, TAU); ctx.fill();
+  // face
+  ctx.fillStyle = "#111";
+  for (const sg of [-1, 1]) { ctx.beginPath(); ctx.arc(r * 1.05, sg * r * 0.22, r * 0.1, 0, TAU); ctx.fill(); }
+  ctx.beginPath(); ctx.arc(r * 1.35, 0, r * 0.08, 0, TAU); ctx.fill();
+  ctx.strokeStyle = "rgba(20,20,20,.6)"; ctx.lineWidth = 1.2;
+  for (const sg of [-1, 1]) for (const k of [-0.2, 0.2]) { ctx.beginPath(); ctx.moveTo(r * 1.3, sg * r * 0.12); ctx.lineTo(r * 1.65, sg * r * (0.25 + k)); ctx.stroke(); }
+  ctx.restore();
+}
+
+/** Polar night: everything dark except light around penguins, plus aurora. */
+let nightCv = null;
+function drawNight() {
+  if (!nightCv) nightCv = document.createElement("canvas");
+  if (nightCv.width !== canvas.width || nightCv.height !== canvas.height) { nightCv.width = canvas.width; nightCv.height = canvas.height; }
+  const n = nightCv.getContext("2d");
+  n.setTransform(DPR, 0, 0, DPR, 0, 0);
+  n.globalCompositeOperation = "source-over"; n.clearRect(0, 0, W, H);
+  n.fillStyle = "rgba(3,8,24,.9)"; n.fillRect(0, 0, W, H);
+  n.globalCompositeOperation = "destination-out";
+  const light = (wx, wy, wr) => {
+    const [x, y] = toScreen(wx, wy), r = wr * cam.scale;
+    const g = n.createRadialGradient(x, y, r * 0.3, x, y, r);
+    g.addColorStop(0, "rgba(0,0,0,1)"); g.addColorStop(1, "rgba(0,0,0,0)");
+    n.fillStyle = g; n.beginPath(); n.arc(x, y, r, 0, TAU); n.fill();
+  };
+  for (const p of G.penguins) if (p.alive) light(p.x, p.y, p.isPlayer ? 200 : 80);
+  if (G.seal && G.seal.state !== "idle") light(G.seal.state === "warn" ? G.seal.sx : G.seal.x, G.seal.state === "warn" ? G.seal.sy : G.seal.y, 90);
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(nightCv, 0, 0); ctx.restore();
+  // aurora ribbons
+  ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.globalCompositeOperation = "lighter";
+  const cols = ["rgba(80,255,170,.10)", "rgba(120,140,255,.08)", "rgba(200,90,255,.07)"];
+  for (let i = 0; i < 3; i++) {
+    ctx.strokeStyle = cols[i]; ctx.lineWidth = 40 + i * 14; ctx.lineCap = "round";
+    ctx.beginPath();
+    for (let x = -40; x <= W + 40; x += 30) {
+      const y = H * (0.12 + i * 0.07) + Math.sin(x * 0.006 + waterT * 0.5 + i * 2) * 30 + Math.sin(x * 0.015 + waterT * 0.9) * 10;
+      x === -40 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
+  // faint glowing rim so the edge stays readable
+  ctx.save(); ctx.strokeStyle = "rgba(150,215,255,.4)"; ctx.lineWidth = 3; ctx.setLineDash([4, 10]); edgePath(G.shownR, 0); ctx.stroke(); ctx.restore();
 }
 
 /** Cartoon waves and sparkles, anchored to the world so they move with the camera. */
@@ -1190,18 +1453,25 @@ function refreshCoins() { document.querySelectorAll("[data-coins]").forEach((el)
 function renderMenu() {
   refreshCoins();
   $("muteBtn").textContent = save.muted ? "🔇" : "🔊";
+  if (!arenaUnlocked(arenaIndex(save.arena))) save.arena = "floe";
   const box = $("arenas");
-  box.innerHTML = ARENAS.map((a) => {
-    const open = save.unlocked.includes(a.id);
+  box.innerHTML = ARENAS.map((a, i) => {
+    const open = arenaUnlocked(i), won = (save.winsByArena[a.id] || 0) > 0;
     return `<button class="arena ${save.arena === a.id ? "sel" : ""} ${open ? "" : "locked"}" data-arena="${a.id}" ${open ? "" : "aria-disabled=true"}>
-      <span class="ai">${open ? a.icon : "🔒"}</span><span class="an">${a.name}</span><span class="ad">${open ? a.desc : a.unlockText}</span></button>`;
+      <span class="ai">${open ? a.icon : "🔒"}</span><span class="an">${a.name}${won ? " 🏆" : ""}</span><span class="ad">${open ? a.desc : arenaLockText(i)}</span></button>`;
   }).join("");
   box.querySelectorAll("[data-arena]").forEach((b) => (b.onclick = () => {
     Sound.init(); Sound.click();
-    if (!save.unlocked.includes(b.dataset.arena)) return warnMenu(ARENAS.find((a) => a.id === b.dataset.arena).unlockText);
+    const i = arenaIndex(b.dataset.arena);
+    if (!arenaUnlocked(i)) return warnMenu(`${ARENAS[i].name}: reach level ${ARENAS[i].level} and win ${ARENAS[i - 1].name}`);
     save.arena = b.dataset.arena; persist(); renderMenu();
   }));
+  const sel = box.querySelector(".sel"); if (sel) sel.scrollIntoView({ block: "nearest", inline: "center" });
   drawPreview($("menuPeng"), SKINS.find((s) => s.id === save.skin) || SKINS[0], 64);
+  const L = levelInfo();
+  $("lvlNum").textContent = L.level;
+  $("lvlBar").style.width = Math.round((L.into / L.need) * 100) + "%";
+  $("lvlText").textContent = `${L.into} / ${L.need} XP`;
   $("statLine").textContent = save.games ? `${save.wins} wins · ${save.kos} KOs · ${save.games} games` : "Push everyone off. Be the last penguin standing!";
 }
 function warnMenu(t) { const el = $("menuNote"); el.textContent = "🔒 " + t; el.classList.add("show"); setTimeout(() => el.classList.remove("show"), 2200); }
@@ -1237,16 +1507,18 @@ function renderSkins() {
   refreshCoins();
   const box = $("skinList");
   box.innerHTML = SKINS.map((s) => {
+    if (s.ach && s.test() && !save.owned.includes(s.id)) save.owned.push(s.id);
     const owned = save.owned.includes(s.id), eq = save.skin === s.id;
-    return `<button class="skin ${eq ? "eq" : ""} ${s.rare ? "rare" : ""}" data-skin="${s.id}">
+    const label = eq ? "Equipped" : owned ? "Select" : s.ach ? `🏆 ${s.ach}${s.prog ? ` (${s.prog()})` : ""}` : `🪙 ${s.price}`;
+    return `<button class="skin ${eq ? "eq" : ""} ${s.rare ? "rare" : ""} ${!owned && s.ach ? "ach" : ""}" data-skin="${s.id}">
       <canvas data-prev="${s.id}"></canvas><span class="sn">${s.name}</span>
-      <span class="sp">${eq ? "Equipped" : owned ? "Select" : `🪙 ${s.price}`}</span></button>`;
+      <span class="sp">${label}</span></button>`;
   }).join("");
   box.querySelectorAll("canvas[data-prev]").forEach((cv) => drawPreview(cv, SKINS.find((s) => s.id === cv.dataset.prev), 72));
   box.querySelectorAll("[data-skin]").forEach((b) => (b.onclick = () => {
     const s = SKINS.find((x) => x.id === b.dataset.skin);
     if (save.owned.includes(s.id)) { save.skin = s.id; Sound.click(); }
-    else if (save.coins >= s.price) { save.coins -= s.price; save.owned.push(s.id); save.skin = s.id; Sound.coin(); }
+    else if (!s.ach && save.coins >= s.price) { save.coins -= s.price; save.owned.push(s.id); save.skin = s.id; Sound.coin(); }
     else { b.classList.remove("nope"); void b.offsetWidth; b.classList.add("nope"); return; }
     persist(); renderSkins();
   }));
@@ -1258,6 +1530,7 @@ async function startGame() {
   Sound.init(); Sound.click();
   if (roundsPlayed > 0) { $("adNote").classList.remove("hidden"); await Poki.commercial(); $("adNote").classList.add("hidden"); }
   roundsPlayed++;
+  if (!arenaUnlocked(arenaIndex(save.arena))) save.arena = "floe";
   newRound(save.arena);
   state = "play"; setScreen("hud");
   $("hudArena").textContent = G.arena.icon + " " + G.arena.name;
@@ -1276,15 +1549,27 @@ function finish(won, place, kos) {
   Poki.stop();
   state = "over";
   const total = BOTS_PER_ROUND + 1;
-  const placeCoins = [0, 60, 40, 30, 20, 15, 12, 10, 8, 6, 5][place] || 5;
-  const koCoins = kos * 12;
+  const placeCoins = [0, 50, 35, 25, 18, 14, 11, 9, 7, 6, 5][place] || 5;
+  const koCoins = kos * 10;
   const earned = placeCoins + koCoins;
-  save.coins += earned; save.games++; save.kos += kos; if (won) save.wins++;
-  // unlocks
-  let unlockMsg = "";
-  const idx = ARENAS.findIndex((a) => a.id === G.arena.id);
-  if (place <= 3 && ARENAS[idx + 1] && !save.unlocked.includes(ARENAS[idx + 1].id)) {
-    save.unlocked.push(ARENAS[idx + 1].id); unlockMsg = `New arena unlocked: ${ARENAS[idx + 1].icon} ${ARENAS[idx + 1].name}!`;
+  const xpGain = 15 + ([0, 60, 42, 32, 24, 20, 16, 13, 11, 10, 9][place] || 9) + kos * 12;
+  // remember what was locked before, to announce new unlocks
+  const before = { level: levelInfo().level, arenas: ARENAS.map((a, i) => arenaUnlocked(i)), skins: SKINS.filter((x) => x.ach).map((x) => x.test()) };
+  save.coins += earned; save.games++; save.kos += kos; save.xp += xpGain;
+  if (won) {
+    save.wins++; save.winsByArena[G.arena.id] = (save.winsByArena[G.arena.id] || 0) + 1;
+    if (!G.playerBoosted) save.noBoostWin = true;
+  }
+  const after = levelInfo();
+  const msgs = [];
+  if (after.level > before.level) msgs.push(`⭐ Level up! You are now level ${after.level}.`);
+  ARENAS.forEach((a, i) => { if (!before.arenas[i] && arenaUnlocked(i)) msgs.push(`New arena unlocked: ${a.icon} ${a.name}!`); });
+  SKINS.filter((x) => x.ach).forEach((x, i) => { if (!before.skins[i] && x.test()) { if (!save.owned.includes(x.id)) save.owned.push(x.id); msgs.push(`🏆 New skin earned: ${x.name}!`); } });
+  // hint at what's next
+  const next = ARENAS.findIndex((a, i) => !arenaUnlocked(i));
+  if (!msgs.length && next > 0) {
+    const a = ARENAS[next], needWin = !(save.winsByArena[ARENAS[next - 1].id] > 0);
+    msgs.push(`Next arena ${a.icon} ${a.name}: ${after.level < a.level ? `level ${a.level}` : ""}${after.level < a.level && needWin ? " + " : ""}${needWin ? `win ${ARENAS[next - 1].name}` : ""}`);
   }
   persist();
   G.result = { won, place, kos, earned };
@@ -1294,8 +1579,9 @@ function finish(won, place, kos) {
   $("overStats").innerHTML = `
     <div><span>Place</span><b>#${place}</b><em>🪙 ${placeCoins}</em></div>
     <div><span>Knockouts</span><b>${kos}</b><em>🪙 ${koCoins}</em></div>
-    <div class="tot"><span>Coins earned</span><b>🪙 ${earned}</b></div>`;
-  $("unlockMsg").textContent = unlockMsg; $("unlockMsg").classList.toggle("hidden", !unlockMsg);
+    <div class="tot"><span>Coins earned</span><b>🪙 ${earned}</b></div>
+    <div class="xp"><span>Level ${after.level}</span><i><u style="width:${Math.round((after.into / after.need) * 100)}%"></u></i><b>+${xpGain} XP</b></div>`;
+  $("unlockMsg").innerHTML = msgs.map((m) => `<div>${m}</div>`).join(""); $("unlockMsg").classList.toggle("hidden", !msgs.length);
   $("doubleBtn").classList.toggle("hidden", !Poki.on || earned === 0);
   $("doubleBtn").disabled = false;
   refreshCoins();
@@ -1364,6 +1650,7 @@ window.__ir = { P, get G() { return G; }, get state() { return state; }, save: (
 Poki.init().then(() => {
   Poki.loaded();
   setScreen("menu"); renderMenu(); newRound(save.arena, true);
+  if (location.hash === "#reset") { localStorage.removeItem(SAVE_KEY); location.hash = ""; location.reload(); }
   requestAnimationFrame(frame);
 });
 })();
