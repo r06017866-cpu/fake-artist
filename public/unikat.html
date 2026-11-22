@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#f7f1e5">
+<title>Unikat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=DM+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1b1a22; --paper: #f7f1e5; --card: #fffaf0; --muted: #6d6876;
+    --yellow: #ffd23f; --pink: #ff5d8f; --teal: #22c3a6; --blue: #4d6bff; --orange: #ff8c42; --grey: #d9d3c7;
+    --line: 2.5px solid var(--ink); --shadow: 4px 4px 0 var(--ink);
+    --display: "Bricolage Grotesque", system-ui, sans-serif; --ui: "DM Sans", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    background: var(--paper);
+    background-image: radial-gradient(rgba(27,26,34,.09) 1.2px, transparent 1.3px);
+    background-size: 18px 18px;
+    color: var(--ink); font-family: var(--ui); font-size: 16px; line-height: 1.4;
+  }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  input {
+    font: inherit; font-size: 17px; color: var(--ink); background: #fff; border: var(--line); border-radius: 12px;
+    padding: 12px 13px; width: 100%; outline: none;
+  }
+  input:focus { box-shadow: 3px 3px 0 var(--blue); }
+  input::placeholder { color: #a59fae; }
+  #app { max-width: 520px; margin: 0 auto; padding: 14px 16px 40px; }
+  .stack { display: flex; flex-direction: column; gap: 12px; }
+  .row { display: flex; gap: 10px; align-items: center; }
+  .grow { flex: 1; min-width: 0; }
+  .muted { color: var(--muted); }
+  .small { font-size: 13px; }
+  .center { text-align: center; }
+  h2 { font-family: var(--display); font-size: 24px; margin: 0; line-height: 1.1; }
+  h3 { font-family: var(--display); font-size: 18px; margin: 0; }
+
+  .card { background: var(--card); border: var(--line); border-radius: 18px; box-shadow: var(--shadow); padding: 16px; }
+  .btn {
+    border: var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 14px 16px; font-weight: 800; font-size: 17px;
+    background: var(--yellow); color: var(--ink); width: 100%; transition: transform .06s, box-shadow .06s;
+  }
+  .btn:active:not(:disabled) { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--ink); }
+  .btn:disabled { opacity: .45; cursor: default; }
+  .btn.pink { background: var(--pink); color: #fff; }
+  .btn.teal { background: var(--teal); }
+  .btn.white { background: #fff; }
+  .btn.sm { width: auto; padding: 8px 12px; font-size: 14px; border-radius: 11px; box-shadow: 3px 3px 0 var(--ink); }
+  .btn.xs { width: auto; padding: 5px 9px; font-size: 13px; border-width: 2px; border-radius: 9px; box-shadow: 2px 2px 0 var(--ink); }
+  .link { background: none; border: 0; text-decoration: underline; color: var(--muted); font-weight: 600; padding: 6px; }
+
+  /* Start */
+  .hero { text-align: center; padding: 26px 0 18px; }
+  .logo { font-family: var(--display); font-weight: 800; font-size: 66px; letter-spacing: -2px; line-height: 1; display: inline-flex; align-items: center; }
+  .logo span { background: var(--pink); color: #fff; border: var(--line); box-shadow: var(--shadow); border-radius: 14px; padding: 0 10px 4px; margin-left: 6px; transform: rotate(-4deg); display: inline-block; }
+  .tagline { font-weight: 700; margin-top: 14px; font-size: 17px; }
+  .divider { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; font-weight: 700; }
+  .divider::before, .divider::after { content: ""; flex: 1; border-top: 2px dashed #c9c1b3; }
+  .code-input { text-transform: uppercase; letter-spacing: 6px; text-align: center; font-weight: 800; font-family: var(--display); }
+  details.rules summary { font-weight: 800; cursor: pointer; list-style: none; display: flex; justify-content: space-between; }
+  details.rules summary::-webkit-details-marker { display: none; }
+  details.rules summary::after { content: "＋"; }
+  details.rules[open] summary::after { content: "－"; }
+  .rules ol { padding-left: 20px; margin: 12px 0 0; display: flex; flex-direction: column; gap: 6px; }
+  .pts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+
+  /* Lobby */
+  .roomcode { font-family: var(--display); font-weight: 800; font-size: 50px; letter-spacing: 8px; line-height: 1; }
+  .plist { display: flex; flex-direction: column; gap: 8px; }
+  .pl { display: flex; align-items: center; gap: 10px; background: #fff; border: 2px solid var(--ink); border-radius: 12px; padding: 8px 10px; }
+  .pl.off { opacity: .45; }
+  .dot { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--ink); flex: none; display: grid; place-items: center; font-weight: 800; font-size: 13px; }
+  .pl .nm { font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tag { font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 7px; border: 2px solid var(--ink); background: #fff; white-space: nowrap; }
+  .tag.y { background: var(--yellow); } .tag.p { background: var(--pink); color: #fff; } .tag.t { background: var(--teal); } .tag.b { background: var(--blue); color: #fff; }
+  .seg { display: flex; border: var(--line); border-radius: 12px; overflow: hidden; background: #fff; }
+  .seg button { flex: 1; background: none; border: 0; border-right: 2px solid var(--ink); padding: 10px 2px; font-weight: 800; font-size: 15px; }
+  .seg button:last-child { border-right: 0; }
+  .seg button.on { background: var(--ink); color: var(--yellow); }
+  .setting { display: flex; flex-direction: column; gap: 6px; }
+  .setting label { font-size: 13px; font-weight: 800; color: var(--muted); }
+
+  /* Spiel */
+  .topbar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .chip { background: #fff; border: 2px solid var(--ink); border-radius: 999px; padding: 5px 11px; font-weight: 800; font-size: 13px; white-space: nowrap; }
+  .timer { margin-left: auto; font-family: var(--display); font-weight: 800; font-size: 17px; min-width: 58px; text-align: center; background: var(--ink); color: var(--yellow); border-radius: 999px; padding: 4px 11px; }
+  .timer.hurry { background: var(--pink); color: #fff; animation: pulse .5s infinite alternate; }
+  @keyframes pulse { to { transform: scale(1.08); } }
+  .iconbtn { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--ink); background: #fff; font-size: 17px; display: grid; place-items: center; flex: none; }
+  .bar { height: 7px; border: 2px solid var(--ink); border-radius: 99px; background: #fff; overflow: hidden; margin: -4px 0 14px; }
+  .bar i { display: block; height: 100%; background: var(--teal); transition: width .25s linear; }
+  .bar.hurry i { background: var(--pink); }
+
+  .catcard { background: var(--yellow); border: var(--line); box-shadow: var(--shadow); border-radius: 18px; padding: 16px 18px; transform: rotate(-1.2deg); margin: 4px 4px 8px; }
+  .catcard .lbl { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; }
+  .catcard .txt { font-family: var(--display); font-weight: 800; font-size: 28px; line-height: 1.1; margin-top: 4px; word-break: break-word; }
+  .catcard.small .txt { font-size: 21px; }
+  .judgebig { text-align: center; font-size: 56px; line-height: 1; }
+  .sugg { display: flex; flex-wrap: wrap; gap: 8px; }
+  .sugg button { background: #fff; border: 2px solid var(--ink); border-radius: 999px; padding: 7px 12px; font-weight: 700; font-size: 14px; }
+  .waiting { text-align: center; padding: 26px 10px; }
+  .waiting .big { font-size: 46px; margin-bottom: 8px; animation: bob 1.4s ease-in-out infinite; }
+  @keyframes bob { 50% { transform: translateY(-6px) rotate(-6deg); } }
+  .numin { display: flex; align-items: center; gap: 10px; }
+  .numin b { font-family: var(--display); font-size: 22px; width: 22px; text-align: center; }
+  .myans { display: flex; flex-direction: column; gap: 6px; }
+  .myans div { background: #fff; border: 2px solid var(--ink); border-radius: 10px; padding: 8px 12px; font-weight: 700; }
+  .progress { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+  .progress .chip.ok { background: var(--teal); }
+
+  /* Gruppen */
+  .groups { display: flex; flex-direction: column; gap: 12px; }
+  .group { position: relative; background: #fff; border: var(--line); border-radius: 16px; box-shadow: var(--shadow); padding: 12px 12px 10px; }
+  .group.sel { box-shadow: 4px 4px 0 var(--blue); border-color: var(--blue); }
+  .group.inv { background: #eee9df; box-shadow: 2px 2px 0 var(--ink); }
+  .group.inv .atext { text-decoration: line-through; color: var(--muted); }
+  .group.target { cursor: pointer; animation: wiggle .9s ease-in-out infinite; }
+  @keyframes wiggle { 25% { transform: rotate(-.6deg); } 75% { transform: rotate(.6deg); } }
+  .answers { display: flex; flex-wrap: wrap; gap: 7px; padding-right: 86px; }
+  .ans { display: inline-flex; align-items: center; gap: 7px; background: var(--paper); border: 2px solid var(--ink); border-radius: 10px; padding: 5px 9px; max-width: 100%; }
+  .ans .atext { font-weight: 800; word-break: break-word; }
+  .ans .by { font-size: 12px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+  .ans .pdot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--ink); flex: none; }
+  .ans .split { border: 0; background: none; padding: 0 0 0 2px; font-size: 15px; line-height: 1; }
+  .stamp { position: absolute; top: 10px; right: 10px; font-family: var(--display); font-weight: 800; font-size: 14px; border: 2px solid var(--ink); border-radius: 9px; padding: 3px 8px; transform: rotate(5deg); text-align: center; line-height: 1.05; }
+  .stamp small { display: block; font-family: var(--ui); font-size: 10px; font-weight: 800; }
+  .stamp.s3 { background: var(--yellow); }
+  .stamp.s1 { background: var(--blue); color: #fff; }
+  .stamp.s0 { background: var(--grey); }
+  .stamp.sx { background: var(--pink); color: #fff; }
+  .gactions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .banner { background: var(--blue); color: #fff; border: var(--line); border-radius: 14px; padding: 10px 12px; font-weight: 700; display: flex; gap: 10px; align-items: center; position: sticky; top: 8px; z-index: 5; box-shadow: var(--shadow); }
+  .banner .btn { flex: none; }
+  .sticky-bottom { position: sticky; bottom: 12px; z-index: 5; }
+  .empty { text-align: center; color: var(--muted); font-weight: 700; padding: 20px; }
+
+  /* Punkte */
+  .score-row { display: flex; align-items: center; gap: 10px; background: #fff; border: 2px solid var(--ink); border-radius: 12px; padding: 8px 10px; }
+  .score-row .nm { flex: 1; font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .score-row .plus { font-family: var(--display); font-weight: 800; font-size: 17px; min-width: 40px; text-align: right; }
+  .score-row .plus.zero { color: var(--muted); }
+  .score-row .tot { font-family: var(--display); font-weight: 800; font-size: 20px; min-width: 38px; text-align: right; }
+  .score-row.off { opacity: .5; }
+  .rank { font-family: var(--display); font-weight: 800; width: 22px; text-align: center; }
+  .pop { animation: pop .45s cubic-bezier(.3,1.6,.6,1) both; }
+  @keyframes pop { from { transform: scale(.6); opacity: 0; } }
+
+  /* Ende */
+  .podium { display: flex; align-items: flex-end; justify-content: center; gap: 10px; margin: 18px 0 6px; }
+  .pod { flex: 1; max-width: 140px; text-align: center; }
+  .pod .nm { font-weight: 800; margin-bottom: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pod .blk { border: var(--line); border-radius: 14px 14px 0 0; box-shadow: var(--shadow); display: flex; flex-direction: column; justify-content: flex-start; padding-top: 10px; font-family: var(--display); font-weight: 800; }
+  .pod .blk .place { font-size: 30px; }
+  .pod .blk .pt { font-size: 15px; }
+  .pod.p1 .blk { height: 150px; background: var(--yellow); }
+  .pod.p2 .blk { height: 112px; background: var(--teal); }
+  .pod.p3 .blk { height: 84px; background: var(--orange); }
+
+  /* Modal & Toast */
+  .modal-bg { position: fixed; inset: 0; background: rgba(27,26,34,.5); display: flex; align-items: flex-end; justify-content: center; z-index: 20; }
+  .modal { background: var(--paper); border: var(--line); border-bottom: 0; border-radius: 22px 22px 0 0; width: 100%; max-width: 520px; padding: 18px 16px 26px; max-height: 85vh; overflow: auto; }
+  #toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(120px); background: var(--ink); color: #fff; padding: 11px 16px; border-radius: 12px; font-weight: 700; z-index: 30; transition: transform .25s, visibility .25s; max-width: 90vw; text-align: center; visibility: hidden; }
+  #toast.show { transform: translateX(-50%) translateY(0); visibility: visible; }
+  .conn { position: fixed; top: 0; left: 0; right: 0; background: var(--pink); color: #fff; text-align: center; font-weight: 800; font-size: 13px; padding: 4px; z-index: 40; display: none; }
+</style>
+</head>
+<body>
+<div class="conn" id="conn">Verbindung wird wiederhergestellt …</div>
+<div id="app"></div>
+<div id="modal"></div>
+<div id="toast"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+"use strict";
+const socket = io("/unikat");
+const store = {
+  get(k) { try { return localStorage.getItem("unikat:" + k); } catch { return null; } },
+  set(k, v) { try { v == null ? localStorage.removeItem("unikat:" + k) : localStorage.setItem("unikat:" + k, v); } catch {} },
+};
+let myId = store.get("id");
+if (!myId) { myId = Math.random().toString(36).slice(2) + Date.now().toString(36); store.set("id", myId); }
+
+const COLORS = ["#ff5d8f", "#4d6bff", "#22c3a6", "#ffd23f", "#ff8c42", "#a66cff", "#00b4d8", "#7cb518", "#e76f51", "#8d6e63"];
+const CATS = [
+  "Ein Land, das an die Schweiz grenzt", "Ein Schulfach", "Eine Fastfood-Kette", "Ein Planet", "Ein Monat",
+  "Eine Social-Media-App", "Ein Kanton", "Eine Automarke", "Ein Fussballclub aus der Super League", "Eine Pizzasorte",
+  "Ein Sternzeichen", "Ein Instrument im Orchester", "Ein Brettspiel", "Eine olympische Sportart", "Eine Schweizer Stadt",
+  "Ein Gemüse", "Eine Frucht", "Ein Superheld", "Etwas, das im Klassenzimmer steht", "Ein Schweizer Gericht",
+  "Ein Videospiel", "Ein Kleidungsstück", "Eine Farbe", "Ein Tier im Zoo", "Ein Getränk", "Eine Süssigkeit", "Ein Beruf",
+  "Eine Hauptstadt in Europa", "Ein Möbelstück", "Eine Eissorte", "Ein Lehrer von uns", "Jemand aus unserer Klasse",
+];
+
+const S = { state: null, offset: 0, connected: false, wantRoom: store.get("room") };
+const L = { name: store.get("name") || "", joinCode: "", catText: "", drafts: [], draftRound: -1, sugg: [], mergeFrom: null, menu: false };
+const urlCode = (new URLSearchParams(location.search).get("r") || "").toUpperCase().slice(0, 4);
+if (urlCode) L.joinCode = urlCode;
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const player = (id) => S.state?.players.find((p) => p.id === id);
+const colorOf = (id) => { const i = S.state ? S.state.players.findIndex((p) => p.id === id) : 0; return COLORS[(i < 0 ? 0 : i) % COLORS.length]; };
+const nameOf = (id) => player(id)?.name || "?";
+const isHost = () => S.state && S.state.hostId === myId;
+const initial = (n) => esc((n || "?").trim().charAt(0).toUpperCase());
+
+function toast(msg) {
+  const t = $("toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 2600);
+}
+function shuffleSugg() { L.sugg = [...CATS].sort(() => Math.random() - .5).slice(0, 4); }
+shuffleSugg();
+
+// ---------------- Socket ----------------
+socket.on("connect", () => {
+  S.connected = true; $("conn").style.display = "none";
+  if (S.wantRoom) socket.emit("join", { code: S.wantRoom, playerId: myId, name: L.name });
+});
+socket.on("disconnect", () => { S.connected = false; if (S.state) $("conn").style.display = "block"; });
+socket.on("toast", toast);
+socket.on("noroom", () => { S.wantRoom = null; store.set("room", null); S.state = null; history.replaceState(null, "", location.pathname); render(); });
+socket.on("kicked", (msg) => { toast(msg); S.wantRoom = null; store.set("room", null); S.state = null; render(); });
+socket.on("state", (st) => {
+  S.state = st; S.offset = st.serverNow - Date.now();
+  S.wantRoom = st.code; store.set("room", st.code);
+  if (new URLSearchParams(location.search).get("r") !== st.code) history.replaceState(null, "", location.pathname + "?r=" + st.code);
+  if (st.phase !== "review") L.mergeFrom = null;
+  if (st.phase === "answer" && L.draftRound !== st.roundNo) {
+    L.draftRound = st.roundNo;
+    L.drafts = Array.from({ length: st.settings.answers }, (_, i) => st.myDraft?.[i] || "");
+  }
+  render();
+});
+
+// ---------------- Render ----------------
+let lastKey = "";
+function screenKey() {
+  const s = S.state;
+  if (!s) return "home|" + (S.wantRoom ? "joining" : "");
+  // Bildschirme mit Eingabefeldern werden nur neu aufgebaut, wenn sich wirklich etwas Wichtiges ändert
+  if (s.phase === "category" && s.judgeId === myId) return "cat-judge|" + s.roundNo;
+  if (s.phase === "answer" && s.amAnswerer && !s.mySubmitted) return "answer-input|" + s.roundNo + "|" + s.category;
+  const { serverNow, deadline, ...rest } = s;
+  return JSON.stringify(rest) + "|" + L.mergeFrom + "|" + L.sugg.join();
+}
+
+function render() {
+  const key = screenKey();
+  if (key !== lastKey) {
+    lastKey = key;
+    const active = document.activeElement && document.activeElement.id;
+    $("app").innerHTML = build();
+    if (active && $(active)) { const el = $(active); el.focus(); }
+  }
+  patch();
+  renderModal();
+}
+
+function build() {
+  const s = S.state;
+  if (!s) return S.wantRoom && S.connected === false ? `<div class="waiting"><div class="big">🔌</div><b>Verbinde …</b></div>` : buildHome();
+  switch (s.phase) {
+    case "lobby": return buildLobby();
+    case "category": return topbar() + buildCategory();
+    case "answer": return topbar() + buildAnswer();
+    case "review": return topbar() + buildReview();
+    case "results": return topbar() + buildResults();
+    case "end": return buildEnd();
+  }
+  return "";
+}
+
+// Dinge, die sich ständig ändern (Timer, Zähler), ohne alles neu zu zeichnen
+function patch() {
+  const s = S.state;
+  const cnt = $("submitCount");
+  if (cnt && s) {
+    const ans = s.players.filter((p) => p.answering);
+    cnt.innerHTML = progressChips(ans);
+  }
+}
+
+function topbar() {
+  const s = S.state;
+  return `<div class="topbar">
+    <span class="chip">Runde ${s.roundNo}/${s.totalRounds}</span>
+    <span class="chip">⚖️ ${esc(nameOf(s.judgeId))}</span>
+    <span class="timer" id="timer" style="${s.deadline ? "" : "display:none"}"></span>
+    <button class="iconbtn" onclick="openMenu()" aria-label="Menü" style="${s.deadline ? "" : "margin-left:auto"}">☰</button>
+  </div>${s.deadline ? `<div class="bar" id="bar"><i></i></div>` : ""}`;
+}
+
+function rulesHtml() {
+  return `<ol>
+    <li>Jede Runde ist jemand anderes <b>Richter</b> und schreibt eine Kategorie, z.B. «Ein Lehrer von uns».</li>
+    <li>Alle anderen schreiben geheim ihre Antworten.</li>
+    <li>Der Richter prüft: Gleiches verbinden («Hr. Meier» = «Meier»), Falsches streichen.</li>
+    <li>Je seltener deine Antwort, desto mehr Punkte. Der Richter bekommt den Durchschnitt der anderen.</li>
+  </ol>
+  <div class="pts"><span class="tag y">allein: 3 Punkte</span><span class="tag b">zu zweit: 1 Punkt</span><span class="tag">3 oder mehr: 0</span></div>
+  <p class="small muted" style="margin:10px 0 0">Tipp: Die besten Kategorien haben nur eine begrenzte Anzahl Antworten.</p>`;
+}
+
+function buildHome() {
+  const joinOnly = !!urlCode;
+  return `<div class="hero"><div class="logo">UNI<span>KAT</span></div><div class="tagline">Sag, was sonst niemand sagt.</div></div>
+  <div class="card stack">
+    <input id="nameIn" placeholder="Dein Name" maxlength="14" value="${esc(L.name)}" oninput="L.name=this.value" autocomplete="off">
+    ${joinOnly ? `
+      <button class="btn pink" onclick="join()">Raum ${esc(urlCode)} beitreten</button>
+      <button class="link" onclick="location.href=location.pathname">Eigenen Raum erstellen</button>` : `
+      <button class="btn" onclick="create()">Raum erstellen</button>
+      <div class="divider">oder mit Code</div>
+      <div class="row">
+        <input id="codeIn" class="code-input grow" placeholder="ABCD" maxlength="4" value="${esc(L.joinCode)}" oninput="L.joinCode=this.value.toUpperCase()" autocomplete="off" autocapitalize="characters">
+        <button class="btn pink sm" style="padding:13px 16px" onclick="join()">Beitreten</button>
+      </div>`}
+  </div>
+  <details class="card rules" style="margin-top:16px"><summary>So geht's</summary>${rulesHtml()}</details>`;
+}
+
+function seg(key, values, labelFn) {
+  const s = S.state, host = isHost();
+  return `<div class="seg">${values.map((v) => `<button class="${s.settings[key] === v ? "on" : ""}" ${host ? `onclick="setSetting('${key}',${v})"` : "disabled"}>${labelFn(v)}</button>`).join("")}</div>`;
+}
+
+function buildLobby() {
+  const s = S.state, host = isHost();
+  const on = s.players.filter((p) => p.connected);
+  const rounds = on.length * s.settings.cycles;
+  return `<div class="stack">
+    <div class="card center stack" style="gap:8px">
+      <div class="small muted" style="font-weight:800">RAUM-CODE</div>
+      <div class="roomcode">${esc(s.code)}</div>
+      <button class="btn white sm" style="align-self:center" onclick="share()">🔗 Link teilen</button>
+    </div>
+    <div class="card stack">
+      <div class="row"><h3 class="grow">Spieler (${on.length})</h3><span class="small muted">min. 3</span></div>
+      <div class="plist">${s.players.map((p) => `
+        <div class="pl ${p.connected ? "" : "off"}"><span class="dot" style="background:${colorOf(p.id)}">${initial(p.name)}</span>
+          <span class="nm">${esc(p.name)}</span>
+          ${p.id === s.hostId ? `<span class="tag y">Host</span>` : ""}${p.id === myId ? `<span class="tag">du</span>` : ""}</div>`).join("")}
+      </div>
+    </div>
+    <div class="card stack">
+      <h3>Einstellungen ${host ? "" : `<span class="small muted">(macht der Host)</span>`}</h3>
+      <div class="setting"><label>Antworten pro Person</label>${seg("answers", [1, 2, 3], (v) => v)}</div>
+      <div class="setting"><label>Zeit zum Antworten</label>${seg("answerTime", [30, 45, 60, 90], (v) => v + " s")}</div>
+      <div class="setting"><label>Jeder ist so oft Richter</label>${seg("cycles", [1, 2, 3], (v) => v + "×")}</div>
+      <div class="small muted">Das gibt <b>${rounds} Runden</b>${on.length < 3 ? " (sobald genug Leute da sind)" : ""}.</div>
+    </div>
+    ${host ? `<button class="btn pink" onclick="emit('start')" ${on.length < 3 ? "disabled" : ""}>${on.length < 3 ? "Warte auf Spieler …" : "Spiel starten"}</button>`
+           : `<div class="center muted" style="font-weight:700">Warte, bis ${esc(nameOf(s.hostId))} startet …</div>`}
+    <details class="card rules"><summary>So geht's</summary>${rulesHtml()}</details>
+    <button class="link" onclick="leave()">Raum verlassen</button>
+  </div>`;
+}
+
+function buildCategory() {
+  const s = S.state;
+  if (s.judgeId === myId) {
+    return `<div class="stack">
+      <div class="judgebig">⚖️</div>
+      <h2 class="center">Du bist Richter!</h2>
+      <p class="center muted" style="margin:0">Schreib eine Kategorie. Am besten eine, bei der es nur eine begrenzte Anzahl Antworten gibt.</p>
+      <div class="card stack">
+        <input id="catIn" placeholder="z.B. Ein Lehrer von uns" maxlength="80" value="${esc(L.catText)}" oninput="L.catText=this.value" onkeydown="if(event.key==='Enter')sendCategory()" autocomplete="off">
+        <div class="row"><span class="small muted grow" style="font-weight:800">IDEEN</span><button class="btn xs white" onclick="shuffleSugg();lastKey='';render()">🎲 andere</button></div>
+        <div class="sugg">${L.sugg.map((c) => `<button onclick="useSugg(this)">${esc(c)}</button>`).join("")}</div>
+        <button class="btn pink" onclick="sendCategory()">Los geht's</button>
+      </div>
+      <p class="center small muted" style="margin:0">Wenn die Zeit abläuft, gibt's eine Zufallskategorie.</p>
+    </div>`;
+  }
+  return `<div class="waiting"><div class="big">🤔</div><h2>${esc(nameOf(s.judgeId))} denkt sich eine Kategorie aus …</h2></div>
+  ${miniScores()}`;
+}
+
+function progressChips(list) {
+  return list.map((p) => `<span class="chip ${p.submitted ? "ok" : ""}">${p.submitted ? "✓ " : "✎ "}${esc(p.name)}</span>`).join("");
+}
+
+function catCard(small) {
+  const s = S.state;
+  return `<div class="catcard ${small ? "small" : ""}"><div class="lbl">${s.randomCategory ? "🎲 Kategorie" : "Kategorie von " + esc(nameOf(s.judgeId))}</div><div class="txt">${esc(s.category)}</div></div>`;
+}
+
+function buildAnswer() {
+  const s = S.state;
+  const answering = s.players.filter((p) => p.answering);
+  const done = answering.filter((p) => p.submitted).length;
+  if (s.amAnswerer && !s.mySubmitted) {
+    return `<div class="stack">${catCard()}
+      <div class="card stack">
+        ${L.drafts.map((v, i) => `<div class="numin"><b>${i + 1}</b><input id="ans${i}" placeholder="Antwort ${i + 1}" maxlength="40" value="${esc(v)}" oninput="setDraft(${i},this.value)" onkeydown="ansKey(event,${i})" autocomplete="off" autocorrect="off"></div>`).join("")}
+        <div class="small muted">Je seltener, desto besser: <b>allein 3</b> · zu zweit 1 · mehr 0 Punkte</div>
+        <button class="btn pink" onclick="submitAnswers()">Abschicken</button>
+      </div>
+      <div class="progress" id="submitCount">${progressChips(answering)}</div>
+    </div>`;
+  }
+  if (s.amAnswerer && s.mySubmitted) {
+    return `<div class="stack">${catCard(true)}
+      <div class="card stack"><div class="row"><h3 class="grow">✓ Abgeschickt</h3><button class="btn xs white" onclick="emit('unsubmit')">Ändern</button></div>
+        <div class="myans">${L.drafts.filter(Boolean).map((a) => `<div>${esc(a)}</div>`).join("")}</div></div>
+      <div class="center muted" style="font-weight:700">Warte auf die anderen (${done}/${answering.length}) …</div>
+      <div class="progress" id="submitCount">${progressChips(answering)}</div>
+    </div>`;
+  }
+  return `<div class="stack">${catCard()}
+    <div class="waiting" style="padding:10px"><div class="big">${s.judgeId === myId ? "⚖️" : "👀"}</div>
+      <b>${s.judgeId === myId ? "Du bist Richter. Die anderen antworten gerade." : "Du schaust diese Runde zu."}</b></div>
+    <div class="progress" id="submitCount">${progressChips(answering)}</div>
+  </div>`;
+}
+
+function stamp(g) {
+  if (g.invalid) return `<div class="stamp sx">ungültig<small>0 Punkte</small></div>`;
+  if (g.count === 1) return `<div class="stamp s3">UNIKAT<small>+3</small></div>`;
+  if (g.count === 2) return `<div class="stamp s1">${g.count}×<small>+1</small></div>`;
+  return `<div class="stamp s0">${g.count}×<small>+0</small></div>`;
+}
+
+function groupHtml(g, judgeMode) {
+  const merging = judgeMode && L.mergeFrom;
+  const isSel = merging && L.mergeFrom === g.id;
+  const isTarget = merging && !isSel;
+  return `<div class="group ${g.invalid ? "inv" : ""} ${isSel ? "sel" : ""} ${isTarget ? "target" : ""}" ${isTarget ? `onclick="doMerge('${g.id}')"` : ""}>
+    ${stamp(g)}
+    <div class="answers">${g.answers.map((a) => `<span class="ans"><span class="pdot" style="background:${colorOf(a.pid)}"></span><span class="atext">${esc(a.text)}</span><span class="by">${esc(a.name)}</span>${judgeMode && !merging && g.answers.length > 1 ? `<button class="split" title="Abtrennen" onclick="emit('split','${a.id}')">✂️</button>` : ""}</span>`).join("")}</div>
+    ${judgeMode && !merging ? `<div class="gactions">
+      <button class="btn xs white" onclick="startMerge('${g.id}')">🔗 Gleich wie …</button>
+      <button class="btn xs ${g.invalid ? "teal" : "white"}" onclick="emit('invalid',{group:'${g.id}',on:${!g.invalid}})">${g.invalid ? "↩ Doch gültig" : "✕ Ungültig"}</button>
+    </div>` : ""}
+    ${isTarget ? `<div class="gactions"><span class="btn xs" style="pointer-events:none">＋ Hier dazu</span></div>` : ""}
+  </div>`;
+}
+
+function buildReview() {
+  const s = S.state;
+  const judge = s.canJudge;
+  const sel = L.mergeFrom && s.groups.find((g) => g.id === L.mergeFrom);
+  return `<div class="stack">${catCard(true)}
+    ${judge ? (sel
+      ? `<div class="banner"><span class="grow">Mit welcher Antwort ist «${esc(sel.answers[0].text)}» gleich? Tippe sie an.</span><button class="btn xs white" onclick="L.mergeFrom=null;render()">Abbrechen</button></div>`
+      : `<div class="card small"><b>Du prüfst:</b> Verbinde Antworten, die dasselbe meinen (🔗), trenne falsch verbundene (✂️) und streiche ungültige (✕). Gleich geschriebene sind schon zusammen.</div>`)
+      : `<div class="card small center"><b>${esc(nameOf(s.judgeId))}</b> prüft gerade die Antworten …</div>`}
+    <div class="groups">${s.groups.length ? s.groups.map((g) => groupHtml(g, judge)).join("") : `<div class="empty">Niemand hat etwas geschrieben 😶</div>`}</div>
+    ${judge && !sel ? `<div class="sticky-bottom"><button class="btn pink" onclick="emit('finish')">Fertig – Punkte vergeben</button></div>` : ""}
+  </div>`;
+}
+
+function buildResults() {
+  const s = S.state;
+  const rows = s.players.filter((p) => p.roundPts != null).sort((a, b) => b.roundPts - a.roundPts);
+  const canNext = isHost() || s.judgeId === myId;
+  const last = s.roundNo >= s.totalRounds;
+  return `<div class="stack">${catCard(true)}
+    <div class="groups">${s.groups.length ? s.groups.map((g) => groupHtml(g, false)).join("") : `<div class="empty">Keine Antworten in dieser Runde.</div>`}</div>
+    <div class="card stack">
+      <h3>Punkte dieser Runde</h3>
+      ${rows.map((p, i) => `<div class="score-row pop" style="animation-delay:${i * 90}ms"><span class="dot" style="background:${colorOf(p.id)}">${initial(p.name)}</span>
+        <span class="nm">${esc(p.name)}${p.id === s.judgeId ? ` <span class="tag">⚖️ Schnitt</span>` : ""}</span>
+        <span class="plus ${p.roundPts ? "" : "zero"}">+${p.roundPts}</span><span class="tot">${p.score}</span></div>`).join("")}
+    </div>
+    ${canNext ? `<button class="btn pink" onclick="emit('next')">${last ? "Zum Endstand 🏆" : "Nächste Runde →"}</button>`
+              : `<div class="center muted" style="font-weight:700">Gleich geht's weiter …</div>`}
+  </div>`;
+}
+
+function sortedScores() { return [...S.state.players].sort((a, b) => b.score - a.score); }
+
+function miniScores() {
+  const list = sortedScores();
+  return `<div class="card stack"><h3>Punktestand</h3>${list.map((p, i) => `<div class="score-row ${p.connected ? "" : "off"}"><span class="rank">${i + 1}</span><span class="dot" style="background:${colorOf(p.id)}">${initial(p.name)}</span><span class="nm">${esc(p.name)}${p.connected ? "" : " (weg)"}</span><span class="tot">${p.score}</span></div>`).join("")}</div>`;
+}
+
+function buildEnd() {
+  const s = S.state;
+  const list = sortedScores();
+  // Plätze mit Gleichstand
+  let place = 0, prev = null;
+  const ranked = list.map((p, i) => { if (p.score !== prev) { place = i + 1; prev = p.score; } return { ...p, place }; });
+  const pod = [ranked[1], ranked[0], ranked[2]].filter(Boolean);
+  return `<div class="stack">
+    <div class="hero" style="padding-bottom:0"><div class="logo" style="font-size:44px">END<span>STAND</span></div></div>
+    ${s.endNote ? `<div class="center muted">${esc(s.endNote)}</div>` : ""}
+    <div class="podium">${pod.map((p) => `<div class="pod p${Math.min(p.place, 3)}"><div class="nm">${esc(p.name)}</div><div class="blk"><span class="place">${p.place === 1 ? "👑" : p.place + "."}</span><span class="pt">${p.score} P.</span></div></div>`).join("")}</div>
+    <div class="card stack">${ranked.map((p) => `<div class="score-row"><span class="rank">${p.place}</span><span class="dot" style="background:${colorOf(p.id)}">${initial(p.name)}</span><span class="nm">${esc(p.name)}</span><span class="tot">${p.score}</span></div>`).join("")}</div>
+    ${isHost() ? `<button class="btn pink" onclick="emit('toLobby')">Nochmal spielen</button>` : `<div class="center muted" style="font-weight:700">Der Host kann eine neue Runde starten.</div>`}
+    <button class="link" onclick="leave()">Raum verlassen</button>
+  </div>`;
+}
+
+function renderModal() {
+  const m = $("modal");
+  if (!L.menu || !S.state) { m.innerHTML = ""; return; }
+  const s = S.state;
+  m.innerHTML = `<div class="modal-bg" onclick="if(event.target===this)closeMenu()"><div class="modal stack">
+    <div class="row"><h2 class="grow">Menü</h2><button class="iconbtn" onclick="closeMenu()">✕</button></div>
+    ${miniScores()}
+    <details class="card rules"><summary>So geht's</summary>${rulesHtml()}</details>
+    <div class="small muted center">Raum ${esc(s.code)}</div>
+    ${isHost() ? `<button class="btn white" onclick="if(confirm('Spiel abbrechen und zurück in die Lobby?')){emit('toLobby');closeMenu()}">Spiel abbrechen (Lobby)</button>` : ""}
+    <button class="btn white" onclick="leave()">Raum verlassen</button>
+  </div></div>`;
+}
+
+// ---------------- Timer ----------------
+setInterval(() => {
+  const s = S.state, t = $("timer"), bar = $("bar");
+  if (!s || !s.deadline || !t) return;
+  const left = Math.max(0, s.deadline - (Date.now() + S.offset));
+  const total = s.phase === "category" ? 45000 : s.settings.answerTime * 1000;
+  const sec = Math.ceil(left / 1000);
+  t.textContent = sec + " s";
+  const hurry = sec <= 10;
+  t.classList.toggle("hurry", hurry);
+  if (bar) { bar.classList.toggle("hurry", hurry); bar.firstChild.style.width = Math.min(100, (left / total) * 100) + "%"; }
+  // Kurz vor Schluss den Entwurf sicher abschicken
+  if (s.phase === "answer" && s.amAnswerer && !s.mySubmitted && left < 1500 && !flushDrafts.done) { flushDrafts(); flushDrafts.done = s.roundNo; }
+  if (flushDrafts.done && flushDrafts.done !== s.roundNo) flushDrafts.done = 0;
+}, 250);
+
+// ---------------- Aktionen ----------------
+function emit(ev, data) { socket.emit(ev, data); }
+function cleanName() { L.name = (L.name || "").trim(); store.set("name", L.name); return L.name; }
+function create() {
+  if (!cleanName()) { toast("Bitte gib einen Namen ein."); $("nameIn")?.focus(); return; }
+  socket.emit("create", { name: L.name, playerId: myId });
+}
+function join() {
+  const code = (urlCode || L.joinCode || "").trim().toUpperCase();
+  if (!cleanName()) { toast("Bitte gib einen Namen ein."); $("nameIn")?.focus(); return; }
+  if (code.length !== 4) { toast("Der Code hat 4 Buchstaben."); return; }
+  S.wantRoom = code;
+  socket.emit("join", { code, name: L.name, playerId: myId });
+}
+function leave() {
+  socket.emit("leave"); S.state = null; S.wantRoom = null; store.set("room", null); L.menu = false;
+  history.replaceState(null, "", location.pathname); lastKey = ""; render();
+}
+function setSetting(k, v) { emit("settings", { ...S.state.settings, [k]: v }); }
+async function share() {
+  const url = location.origin + "/unikat?r=" + S.state.code;
+  if (navigator.share) { try { await navigator.share({ title: "Unikat", text: "Spiel mit! Raum " + S.state.code, url }); return; } catch {} }
+  try { await navigator.clipboard.writeText(url); toast("Link kopiert!"); } catch { prompt("Link kopieren:", url); }
+}
+function useSugg(btn) { L.catText = btn.textContent; const i = $("catIn"); if (i) { i.value = L.catText; } }
+function sendCategory() {
+  const c = (L.catText || "").trim();
+  if (!c) { toast("Schreib eine Kategorie oder wähle eine Idee."); return; }
+  emit("category", c); L.catText = "";
+}
+let draftTimer = null;
+function setDraft(i, v) { L.drafts[i] = v; clearTimeout(draftTimer); draftTimer = setTimeout(flushDrafts, 300); }
+function flushDrafts() { clearTimeout(draftTimer); emit("answers", { list: L.drafts, final: false }); }
+function ansKey(e, i) {
+  if (e.key !== "Enter") return;
+  e.preventDefault();
+  const next = $("ans" + (i + 1));
+  if (next) next.focus(); else submitAnswers();
+}
+function submitAnswers() {
+  if (!L.drafts.some((x) => x.trim())) { toast("Schreib mindestens eine Antwort."); return; }
+  clearTimeout(draftTimer);
+  document.activeElement?.blur?.();
+  emit("answers", { list: L.drafts, final: true });
+}
+function startMerge(gid) { L.mergeFrom = gid; render(); }
+function doMerge(into) { const from = L.mergeFrom; L.mergeFrom = null; emit("merge", { from, into }); render(); }
+function openMenu() { L.menu = true; renderModal(); }
+function closeMenu() { L.menu = false; renderModal(); }
+
+render();
+</script>
+</body>
+</html>
