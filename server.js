@@ -22,12 +22,16 @@ app.get("/health", (_req, res) => res.send("ok"));
 const { createPollRouter } = require("./polls");
 app.use("/api", createPollRouter());
 app.get("/poker", (_req, res) => res.sendFile(path.join(__dirname, "public", "poker.html")));
+app.get("/unikat", (_req, res) => res.sendFile(path.join(__dirname, "public", "unikat.html")));
 app.get(["/umfrage", "/umfrage/:id"], (_req, res) => res.sendFile(path.join(__dirname, "public", "umfrage.html")));
 const server = http.createServer(app);
 const io = new Server(server, { maxHttpBufferSize: 1e5 });
 
 // Poker (siehe poker.js) – eigener Bereich "/poker", unabhängig von Fake Artist
 require("./poker")(io);
+
+// Unikat (siehe unikat.js) – eigener Bereich "/unikat"
+require("./unikat")(io);
 
 /** code -> room */
 const rooms = new Map();

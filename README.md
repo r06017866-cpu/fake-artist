@@ -5,6 +5,7 @@ Auf diesem Server laufen drei Dinge:
 - **Umfrage-Tool** unter `/umfrage` (Abstimmungen ohne Konto)
 - **Poker** unter `/poker` (Texas Hold'em mit Spielchips)
 - **Ice Rumble** unter `/icerumble/` (Pinguin-Arena-Spiel, läuft komplett im Browser)
+- **Unikat** unter `/unikat` (Rate-Spiel: Sag, was sonst niemand sagt)
 
 Ein Zeichen- und Bluff-Spiel fürs Handy, für 3–10 Leute (am besten 4–8).
 Alle zeichnen gemeinsam ein geheimes Wort, Strich für Strich. Nur einer, der **Fake**, kennt das Wort nicht und muss so tun, als ob.
@@ -100,3 +101,12 @@ Danach öffnest du http://localhost:3000. Um alleine zu testen, öffne drei Brow
 - `polls.js`: der Server-Teil vom Umfrage-Tool (Speichern, Abstimmen)
 - `public/umfrage.html`: die Oberfläche vom Umfrage-Tool
 - `poker-engine.js`, `poker.js`, `public/poker.html`: Poker
+
+## Unikat 🟨
+Öffne `/unikat`, erstelle einen Raum und teile den Link. 3–10 Spieler, am besten 4–6.
+- Jede Runde ist jemand anderes **Richter** und schreibt eine Kategorie (z.B. «Ein Lehrer von uns»). Ohne Eingabe gibt es nach 45 Sekunden eine Zufallskategorie.
+- Alle anderen schreiben geheim 1–3 Antworten (stellt der Host ein).
+- Der Richter prüft: Antworten verbinden, die dasselbe meinen (🔗), falsch verbundene trennen (✂️), ungültige streichen (✕). Gleich geschriebene Antworten sind automatisch zusammen (Gross/klein, Akzente, «Herr/Frau» werden ignoriert).
+- **Punkte:** allein = 3, zu zweit = 1, zu dritt oder mehr = 0. Der Richter bekommt den Durchschnitt der anderen (gerundet).
+- Einstellung «Jeder ist so oft Richter» bestimmt die Anzahl Runden (Spieler × Durchgänge).
+- Dateien: `unikat.js` (Server/Spielregeln), `public/unikat.html` (Oberfläche). Ersatz-Kategorien stehen oben in `unikat.js` und in `public/unikat.html` (Liste `CATS`).
